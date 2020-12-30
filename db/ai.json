@@ -1,0 +1,9 @@
+{
+  "base_ai":{
+    "retreat_hp_threshold": 20,
+  "retreat_mp_threshold": 30,
+  "max_attack_instead_spell": 2,
+  "health_potion_gold_percent": 30,
+  "mana_potion_gold_percent": 20
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "goblin": {"attack": 1, "defence": 0, "hp": 5,
+    "exp": 1, "level": 1, "gold": 1, "level_multiplier": 1
+  },
+  "orc": {"attack": 3, "defence": 1, "hp": 15,
+    "exp": 5, "level": 2, "gold": 3, "level_multiplier": 1.1
+  },
+  "bear": {"attack": 8, "defence": 2, "hp": 20,
+    "exp": 25, "level": 3, "gold": 3, "level_multiplier": 1.1
+  },
+  "troll": {"attack": 5, "defence": 5, "hp": 30,
+    "exp": 50, "level": 3, "gold": 10, "level_multiplier": 1.3
+  },
+  "dragon": {"attack": 50, "defence": 30, "hp": 300,
+    "exp": 500, "level": 10, "gold": 30, "level_multiplier": 1.3
+  }
+}

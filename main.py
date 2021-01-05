@@ -243,7 +243,7 @@ def main():
                 turn_start_time, turn_end_time, turn_end_time_r, config.turn_time, turn_number))
             if config.turn_time > 0:
                 time.sleep((turn_end_time_r - turn_end_time).seconds)
-        if turn_number > config.max_turns > 0:
+        if turn_number >= config.max_turns > 0:
             break
         bot_queue.listen(player_list, db)
 

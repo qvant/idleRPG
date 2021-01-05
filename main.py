@@ -135,10 +135,6 @@ def init():
 
     if start_mode == START_CLEAR:
         db.clear_all()
-        for i in class_list:
-            player = Character(i.class_name, i)
-            player.set_ai(ai_list[0])
-            player_list.append(player)
     else:
         player_list = db.load_all_characters(class_list, ai_list[0])
 

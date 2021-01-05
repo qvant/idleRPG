@@ -137,7 +137,8 @@ class QueueListener:
             else:
                 player_list.append(new_character)
                 char_id = new_character.id
-                result = "Success"
+                result = "{} {} was created".format(new_character.class_name.capitalize(),
+                                                    new_character.name)
                 code = QUEUE_STATUS_OK
 
         resp = {"code": code, "message": result}
@@ -163,10 +164,11 @@ class QueueListener:
         else:
             for i in range(len(player_list)):
                 if player_list[i].telegram_id == telegram_id:
+                    result = "{} {} (level {}) was deleted".format(player_list[i].class_name.capitalize(),
+                                                                   player_list[i].name, player_list[i].level)
                     db.delete_character(player_list[i])
                     del player_list[i]
                     code = QUEUE_STATUS_OK
-                    result = "Success"
                     break
         if code is None:
             code = QUEUE_STATUS_CHARACTER_NOT_EXISTS

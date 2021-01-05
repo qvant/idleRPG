@@ -53,7 +53,7 @@ def init():
     global bot_queue
     player_list = []
 
-    parser = argparse.ArgumentParser(description='Generate Oracle RDBMS schema description.')
+    parser = argparse.ArgumentParser(description='Idle RPG server.')
     parser.add_argument("--clear", '-c', help="Restart with empty character base", action="store_true", default=False)
     parser.add_argument("--config", '-cfg', help="Path to config file", action="store", default="cfg\\main.json")
     args = parser.parse_args()

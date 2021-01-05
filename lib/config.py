@@ -1,5 +1,4 @@
 import codecs
-import traceback
 import datetime
 import json
 from .consts import *

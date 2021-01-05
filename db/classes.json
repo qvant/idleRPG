@@ -16,6 +16,28 @@
         {"name": "lighting", "cost": 2, "min_damage": 1, "max_damage": 200}
       ]
     },
+  "Druid": {"Name":  "Druid",
+      "init_hp": 8,
+      "init_mp": 8,
+      "init_attack": 3,
+      "init_defence": 0,
+      "spells": [
+        {"name": "Incest swarm", "cost": 1, "min_damage": 5, "max_damage": 250},
+        {"name": "Plague", "cost": 3, "min_damage": 50, "max_damage": 1000},
+        {"name": "Moon ray", "cost": 2, "min_damage": 30, "max_damage": 300},
+        {"name": "Flame strike", "cost": 5, "min_damage": 80, "max_damage": 1500}
+      ]
+    },
+  "Monk": {"Name":  "Monk",
+      "init_hp": 12,
+      "init_mp": 1,
+      "init_attack": 6,
+      "init_defence": 0,
+      "spells": [
+        {"name": "Fist of God", "cost": 1, "min_damage": 5, "max_damage": 350},
+        {"name": "Ice storm", "cost": 10, "min_damage": 300, "max_damage": 950}
+      ]
+    },
   "Cleric": {"Name":  "Cleric",
       "init_hp": 8,
       "init_mp": 6,

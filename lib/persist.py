@@ -50,15 +50,16 @@ class Persist:
                     health_potions,
                     mana_potions,
                     deaths,
-                    weapon_name, weapon_level, armor_name, armor_level
+                    weapon_name, weapon_level, armor_name, armor_level, telegram_id
                 from idle_rpg_base.characters
         """)
         cnt = 0
         for id, name, class_name, level, exp, hp, max_hp, mp, max_mp, base_attack, base_defence, monsters_killed,\
-            gold, health_potions, mana_potions, deaths, weapon_name, weapon_level, armor_name, armor_level \
+            gold, health_potions, mana_potions, deaths, weapon_name, weapon_level, armor_name, armor_level, \
+            telegram_id \
                 in self.cursor:
 
-            player = Character(name, class_by_name[class_name])
+            player = Character(name, class_by_name[class_name], telegram_id=telegram_id)
             player.level = level
             player.exp = exp
             player.hp = hp
@@ -93,6 +94,16 @@ class Persist:
         self.logger.info("Character loading finished, {0} characters loaded".format(len(players)))
         return players
 
+    def delete_character(self, character):
+        character.need_save = True
+        self.save_character(character)
+        self.cursor.execute("""
+        insert into idle_rpg_base.arch_characters (select * from idle_rpg_base.characters t where t.id = %s)
+        """, (character.id,))
+        self.cursor.execute("""
+        delete from idle_rpg_base.characters t where t.id = %s
+        """, (character.id,))
+
     def save_character(self, character):
         if character.need_save or self.was_error:
             try:
@@ -114,12 +125,13 @@ class Persist:
                 INSERT INTO idle_rpg_base.characters (name, class_name, level, exp, hp, max_hp, mp, max_mp,
                                                         base_attack, base_defence, monsters_killed, gold,
                                                         health_potions, mana_potions, deaths,
-                                                        weapon_name, weapon_level, armor_name, armor_level)
+                                                        weapon_name, weapon_level, armor_name, armor_level, 
+                                                        telegram_id)
                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 
                             %s, %s, %s, %s,
                             %s, %s, %s,
                             %s, %s, %s, 
-                            %s);
+                            %s, %s);
                  """,
                                         (character.name, character.class_name, character.level, character.exp, character.hp,
                                          character.max_hp, character.mp, character.max_mp,
@@ -127,7 +139,7 @@ class Persist:
                                          character.gold,
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,
-                                         armor_level))
+                                         armor_level, character.telegram_id))
                     self.cursor.execute("""select id from idle_rpg_base.characters where name = %s;""", (character.name, ))
                     character.id, = self.cursor.fetchone()
 

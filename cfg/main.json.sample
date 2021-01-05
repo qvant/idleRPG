@@ -11,5 +11,8 @@
   "TURN_TIME": -1,
   "DEBUG_HALT_ON_GAME_ERROR": true,
   "DEBUG_HALT_ON_PERSIST_ERROR": false,
-  "SERVER_NAME": "TS_GRG"
+  "SERVER_NAME": "TS_GRG",
+  "QUEUE_ENABLED": true,
+  "QUEUE_HOST": "localhost",
+  "QUEUE_PORT": 5672,
 }

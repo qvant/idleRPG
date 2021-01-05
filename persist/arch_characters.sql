@@ -1,6 +1,6 @@
-﻿create table idle_rpg_base.characters
+create table idle_rpg_base.arch_characters
 (
-	id serial primary key,
+	id integer primary key,
 	name text,
 	class_name text,
 	level integer,
@@ -15,7 +15,7 @@
 	gold integer,
 	health_potions integer,
 	mana_potions integer,
-	deaths integer, 
+	deaths integer,
 	weapon_name text,
 	weapon_level integer,
 	armor_name text,
@@ -24,5 +24,4 @@
 	dt_updated timestamp with time zone,
 	telegram_id integer
 );
-alter table  idle_rpg_base.characters owner to idle_rpg_user;
-create unique index udx_characters_name on idle_rpg_base.characters(name);
+alter table  idle_rpg_base.arch_characters owner to idle_rpg_user;;

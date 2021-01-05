@@ -12,11 +12,14 @@ from lib.monster import Monster
 from lib.ai import CharAI
 from lib.consts import *
 from lib.config import Config
+from lib.dictionary import set_class_list, set_ai_list
 from lib.item import Item
 from lib.persist import Persist
+from lib.queue import QueueListener
 from lib.utility import check_chance, get_logger
 
 global player_list
+global class_list
 global monster_list
 global quest_verbs
 global quest_numbers
@@ -29,11 +32,13 @@ global weapon_list
 global armor_list
 global app_log
 global game_log
+global bot_queue
 
 
 def init():
     global player_list
     global monster_list
+    global class_list
     global quest_verbs
     global quest_numbers
     global quest_adjective
@@ -45,6 +50,7 @@ def init():
     global armor_list
     global app_log
     global game_log
+    global bot_queue
     player_list = []
 
     parser = argparse.ArgumentParser(description='Generate Oracle RDBMS schema description.')
@@ -62,6 +68,8 @@ def init():
     game_log = get_logger(LOG_GAME, config.log_level)
 
     db = Persist(config)
+
+    bot_queue = QueueListener(config)
 
     Character.set_logger(config)
 
@@ -81,7 +89,7 @@ def init():
                                    max_damage=j["max_damage"])
                 temp_class.add_spell(temp_spell)
         class_list.append(temp_class)
-    player = Character('A', class_list[1])
+    set_class_list(class_list)
 
     f = "db\\ai.json"
     fp = codecs.open(f, 'r', "utf-8")
@@ -93,7 +101,7 @@ def init():
                               mana_potion_gold_percent=ai_list_j[i]["mana_potion_gold_percent"],
                               health_potion_gold_percent=ai_list_j[i]["health_potion_gold_percent"],
                               max_attack_instead_spell=ai_list_j[i]["max_attack_instead_spell"]))
-    player.set_ai(ai_list[0])
+    set_ai_list(ai_list)
 
     f = "db\\quests.json"
     fp = codecs.open(f, 'r', "utf-8")
@@ -131,7 +139,6 @@ def init():
             player = Character(i.class_name, i)
             player.set_ai(ai_list[0])
             player_list.append(player)
-        # player_list.append(player)
     else:
         player_list = db.load_all_characters(class_list, ai_list[0])
 
@@ -204,6 +211,7 @@ def do_action(player):
 def main():
     global db
     global config
+    global bot_queue
     turn_number = 0
     while True:
         turn_start_time = datetime.datetime.now()
@@ -229,6 +237,7 @@ def main():
             config.mark_reload_finish()
             if config.db_credential_changed:
                 db.renew(config)
+            bot_queue.renew(config)
         turn_end_time = datetime.datetime.now()
         if config.turn_time > 0 and turn_end_time > turn_end_time_r:
             app_log.warning("Turn {4} takes too long: started at: {0}, ended at: {1}, should ended: {2} should take:{3}".format(
@@ -240,6 +249,7 @@ def main():
                 time.sleep((turn_end_time_r - turn_end_time).seconds)
         if turn_number > config.max_turns > 0:
             break
+        bot_queue.listen(player_list, db)
 
 
 if __name__ == '__main__':

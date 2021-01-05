@@ -6,8 +6,9 @@ import math
 
 
 class Character:
-    def __init__(self, name, char_class):
+    def __init__(self, name, char_class, telegram_id=None):
         self.id = None
+        self.telegram_id = telegram_id
         self.name = name
         self.class_name = ''
         self.char_class = char_class

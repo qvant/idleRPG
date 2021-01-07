@@ -212,6 +212,7 @@ def main():
     while True:
         turn_start_time = datetime.datetime.now()
         turn_end_time_r = turn_start_time + datetime.timedelta(seconds=config.turn_time)
+        player_cnt = 0
         for i in player_list:
             try:
                 chose_action(i)
@@ -224,6 +225,10 @@ def main():
                     app_log.error(err)
             db.save_character(character=i)
             game_log.info(i)
+            player_cnt += 1
+            if player_cnt >= config.char_batch_size > 0:
+                player_cnt = 0
+                bot_queue.listen(player_list, db)
         turn_number += 1
         db.commit()
         config.renew_if_needed()

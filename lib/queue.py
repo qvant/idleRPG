@@ -31,8 +31,19 @@ class QueueListener:
             return
         self.host = config.queue_host
         self.port = config.queue_port
-        self.queue = None
-        self.channel = None
+        self.batch_size = config.queue_batch_size
+        if reload:
+            self.channel.close()
+            self.queue.close()
+        else:
+            self.queue = None
+            self.channel = None
+        self.queue = pika.BlockingConnection(pika.ConnectionParameters(host=self.host, port=self.port))
+        self.channel = self.queue.channel()
+        self.channel.queue_declare(queue=QUEUE_NAME_INIT)
+        self.channel.queue_declare(queue=QUEUE_NAME_DICT, durable=True)
+        self.channel.queue_declare(queue=QUEUE_NAME_CMD, durable=True)
+        self.channel.queue_declare(queue=QUEUE_NAME_RESPONSES, durable=True)
 
     def renew(self, config):
         self.__init__(config, reload=True)
@@ -43,11 +54,8 @@ class QueueListener:
         msg_proceed = 0
         start_time = datetime.datetime.now()
         class_list = get_class_names()
-        self.queue = pika.BlockingConnection(pika.ConnectionParameters(host=self.host, port=self.port))
-        self.channel = self.queue.channel()
-        self.channel.queue_declare(queue=QUEUE_NAME_INIT)
-        self.channel.queue_declare(queue=QUEUE_NAME_DICT, durable=True)
-        for method_frame, properties, body in self.channel.consume(QUEUE_NAME_INIT, inactivity_timeout=1):
+        msg_cnt = 0
+        for method_frame, properties, body in self.channel.consume(QUEUE_NAME_INIT, inactivity_timeout=0.01):
             # if not timeout
             if method_frame is not None:
                 self.logger.info("Received message {0}, delivery tag {1} in queue".format(body,
@@ -61,16 +69,18 @@ class QueueListener:
                 self.channel.basic_ack(method_frame.delivery_tag)
                 self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
                 msg_proceed += 1
+                msg_cnt += 1
+                if msg_cnt >= self.batch_size > 0:
+                    self.logger.info("Proceed {0} messages in queue {1}, interrupt".format(msg_cnt,
+                                                                                           QUEUE_NAME_DICT))
+                    break
             else:
-                # empty channel
-                break
-            # Escape out of the loop after N messages
-            if method_frame.delivery_tag == QUEUE_INIT_BATCH:
+                self.logger.info("No more messages in queue {0}".format(QUEUE_NAME_DICT))
                 break
         self.logger.info("Processing init bot queue done")
         self.channel.cancel()
-        self.channel.queue_declare(queue=QUEUE_NAME_DICT, durable=True)
-        for method_frame, properties, body in self.channel.consume(QUEUE_NAME_CMD, inactivity_timeout=1):
+        msg_cnt = 0
+        for method_frame, properties, body in self.channel.consume(QUEUE_NAME_CMD, inactivity_timeout=0.01):
 
             # if not timeout
             if method_frame is not None:
@@ -84,17 +94,22 @@ class QueueListener:
                 elif cmd == CMD_DELETE_CHARACTER:
                     self.delete_character_handler(msg, db, player_list, method_frame.delivery_tag)
                 elif cmd == CMD_GET_CHARACTER_STATUS:
-                    self.get_character_status_handler (msg, player_list, method_frame.delivery_tag)
+                    self.get_character_status_handler (msg, db, player_list, method_frame.delivery_tag)
                 else:
                     self.logger.error("Message with command type {0} not supported".format(cmd))
                 # Acknowledge the message
                 self.channel.basic_ack(method_frame.delivery_tag)
                 self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
                 msg_proceed += 1
+                msg_cnt += 1
+                if msg_cnt >= self.batch_size > 0:
+                    self.logger.info("Proceed {0} messages in queue {1}, interrupt".format(msg_cnt,
+                                                                                           QUEUE_NAME_CMD))
+                    break
             else:
+                self.logger.info("No more messages in queue {0}".format(QUEUE_NAME_CMD))
                 break
-        self.channel.close()
-        self.queue.close()
+        self.channel.cancel()
         end_time = datetime.datetime.now()
         self.logger.info("Queue processing done, started at: {0}, ended at: {1}, {2} messages proceed".format(
                 start_time, end_time, msg_proceed))
@@ -139,6 +154,8 @@ class QueueListener:
                 char_id = new_character.id
                 result = "{} {} was created".format(new_character.class_name.capitalize(),
                                                     new_character.name)
+                db.save_character(new_character)
+                db.commit()
                 code = QUEUE_STATUS_OK
 
         resp = {"code": code, "message": result}
@@ -167,6 +184,7 @@ class QueueListener:
                     result = "{} {} (level {}) was deleted".format(player_list[i].class_name.capitalize(),
                                                                    player_list[i].name, player_list[i].level)
                     db.delete_character(player_list[i])
+                    db.commit()
                     del player_list[i]
                     code = QUEUE_STATUS_OK
                     break
@@ -178,7 +196,7 @@ class QueueListener:
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
                                                                                                QUEUE_NAME_RESPONSES))
 
-    def get_character_status_handler(self, cmd, player_list, delivery_tag):
+    def get_character_status_handler(self, cmd, db, player_list, delivery_tag):
         print("try to find character")
         telegram_id = cmd.get("user_id")
         char_info = ''
@@ -189,6 +207,8 @@ class QueueListener:
             for i in range(len(player_list)):
                 if player_list[i].telegram_id == telegram_id:
                     char_info = str(player_list[i])
+                    if char_info.need_save:
+                        db.commit()
                     code = QUEUE_STATUS_OK
                     result = "Success"
                     break

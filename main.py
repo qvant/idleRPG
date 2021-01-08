@@ -240,6 +240,8 @@ def main():
             if config.db_credential_changed:
                 db.renew(config)
             bot_queue.renew(config)
+        elif db.was_error:
+            db.renew(config)
         turn_end_time = datetime.datetime.now()
         if config.turn_time > 0 and turn_end_time > turn_end_time_r:
             app_log.warning("Turn {4} takes too long: started at: {0}, ended at: {1}, should ended: {2} should take:{3}".format(

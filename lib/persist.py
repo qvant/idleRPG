@@ -46,6 +46,7 @@ class Persist:
                     base_attack,
                     base_defence,
                     monsters_killed,
+                    quests_completed
                     gold,
                     health_potions,
                     mana_potions,
@@ -55,8 +56,8 @@ class Persist:
         """)
         cnt = 0
         for id, name, class_name, level, exp, hp, max_hp, mp, max_mp, base_attack, base_defence, monsters_killed,\
-            gold, health_potions, mana_potions, deaths, weapon_name, weapon_level, armor_name, armor_level, \
-            telegram_id \
+            quests_completed, gold, health_potions, mana_potions, deaths, weapon_name, weapon_level, armor_name, \
+            armor_level, telegram_id \
                 in self.cursor:
 
             player = Character(name, class_by_name[class_name], telegram_id=telegram_id, is_created=False)
@@ -69,6 +70,7 @@ class Persist:
             player.base_attack = base_attack
             player.base_defence = base_defence
             player.monsters_killed = monsters_killed
+            player.monsters_killed = quests_completed
             player.gold = gold
             player.health_potions = health_potions
             player.mana_potions = mana_potions
@@ -123,7 +125,8 @@ class Persist:
                 if character.id is None:
                     self.cursor.execute("""
                 INSERT INTO idle_rpg_base.characters (name, class_name, level, exp, hp, max_hp, mp, max_mp,
-                                                        base_attack, base_defence, monsters_killed, gold,
+                                                        base_attack, base_defence, monsters_killed, quests_completed, 
+                                                        gold,
                                                         health_potions, mana_potions, deaths,
                                                         weapon_name, weapon_level, armor_name, armor_level, 
                                                         telegram_id)
@@ -131,11 +134,12 @@ class Persist:
                             %s, %s, %s, %s,
                             %s, %s, %s,
                             %s, %s, %s, 
-                            %s, %s);
+                            %s, %s, %s);
                  """,
                                         (character.name, character.class_name, character.level, character.exp, character.hp,
                                          character.max_hp, character.mp, character.max_mp,
                                          character.base_attack, character.base_defence, character.monsters_killed,
+                                         character.quests_completed,
                                          character.gold,
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,
@@ -147,7 +151,7 @@ class Persist:
                     self.cursor.execute("""
                         update idle_rpg_base.characters 
                             set name=%s, class_name=%s, level=%s, exp=%s, hp=%s, max_hp=%s, mp=%s, max_mp=%s,
-                                base_attack=%s, base_defence=%s, monsters_killed=%s, gold=%s,
+                                base_attack=%s, base_defence=%s, monsters_killed=%s, quests_completed=%s, gold=%s,
                                 health_potions=%s, mana_potions=%s, deaths=%s, 
                                 weapon_name=%s, weapon_level=%s, armor_name=%s, 
                                 armor_level=%s, 
@@ -157,6 +161,7 @@ class Persist:
                                         (character.name, character.class_name, character.level, character.exp, character.hp,
                                          character.max_hp, character.mp, character.max_mp,
                                          character.base_attack, character.base_defence, character.monsters_killed,
+                                         character.quests_completed,
                                          character.gold,
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,

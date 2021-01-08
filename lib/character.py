@@ -26,6 +26,7 @@ class Character:
         self.quest_progress = 0.00
         self.quests_complete = 0
         self.monsters_killed = 0
+        self.quests_completed = 0
         self.gold = 0
         self.health_potions = 0
         self.mana_potions = 0

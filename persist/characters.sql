@@ -12,6 +12,7 @@
 	base_attack integer,
 	base_defence integer,
 	monsters_killed integer,
+	quests_completed integer,
 	gold integer,
 	health_potions integer,
 	mana_potions integer,

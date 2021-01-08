@@ -26,7 +26,6 @@ class Character:
         self.quest_progress = 0.00
         self.quests_complete = 0
         self.monsters_killed = 0
-        self.quests_completed = 0
         self.gold = 0
         self.health_potions = 0
         self.mana_potions = 0
@@ -298,9 +297,9 @@ class Character:
         res += chr(10)
         res += chr(10)
         if self.weapon is not None:
-            res += "He's equipped with {0}".format(self.weapon)
+            res += "He's equipped with {0}. ".format(self.weapon)
         if self.armor is not None:
-            res += "He's wearing {0}".format(self.armor)
+            res += "He's wearing {0}. ".format(self.armor)
         res += chr(10)
         first_spell = True
         for i in self.spells:
@@ -318,6 +317,9 @@ class Character:
                                                                           self.mana_potions)
         res += chr(10)
         res += chr(10)
+        if len(self.history) > 0:
+            res += "Recent events: "
+            res += chr(10)
         for i in self.history:
             res += i
             res += chr(10)

@@ -46,7 +46,7 @@ class Persist:
                     base_attack,
                     base_defence,
                     monsters_killed,
-                    quests_completed
+                    quests_completed,
                     gold,
                     health_potions,
                     mana_potions,
@@ -70,7 +70,7 @@ class Persist:
             player.base_attack = base_attack
             player.base_defence = base_defence
             player.monsters_killed = monsters_killed
-            player.monsters_killed = quests_completed
+            player.quests_complete = quests_completed
             player.gold = gold
             player.health_potions = health_potions
             player.mana_potions = mana_potions
@@ -139,7 +139,7 @@ class Persist:
                                         (character.name, character.class_name, character.level, character.exp, character.hp,
                                          character.max_hp, character.mp, character.max_mp,
                                          character.base_attack, character.base_defence, character.monsters_killed,
-                                         character.quests_completed,
+                                         character.quests_complete,
                                          character.gold,
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,
@@ -161,7 +161,7 @@ class Persist:
                                         (character.name, character.class_name, character.level, character.exp, character.hp,
                                          character.max_hp, character.mp, character.max_mp,
                                          character.base_attack, character.base_defence, character.monsters_killed,
-                                         character.quests_completed,
+                                         character.quests_complete,
                                          character.gold,
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,

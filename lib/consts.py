@@ -17,7 +17,7 @@ HEALTH_POTION_PRICE = 10
 MANA_POTION_PRICE = 12
 
 ACTIONS = [ACTION_NONE, ACTION_RETREAT, ACTION_QUEST, ACTION_DEAD, ACTION_SHOP]
-ACTION_NAMES = ["Unknown", "Retreating", "Questing", "Dead", "Do shopping"]
+ACTION_NAMES = ["unknown", "retreating", "questing", "dead", "do shopping"]
 
 CMD_CREATE_CHARACTER = "create_character"
 CMD_DELETE_CHARACTER = "delete_character"

@@ -207,7 +207,7 @@ class QueueListener:
             for i in range(len(player_list)):
                 if player_list[i].telegram_id == telegram_id:
                     char_info = str(player_list[i])
-                    if char_info.need_save:
+                    if player_list[i].need_save:
                         db.commit()
                     code = QUEUE_STATUS_OK
                     result = "Success"

@@ -28,6 +28,7 @@ class Config:
         self.queue_port = config.get(CONFIG_PARAM_QUEUE_PORT)
         self.queue_batch_size = config.get(CONFIG_PARAM_QUEUE_BATCH_SIZE)
         self.char_batch_size = config.get(CONFIG_PARAM_CHAR_BATCH_SIZE)
+        self.char_history_len = config.get(CONFIG_PARAM_CHAR_HISTORY_LEN)
         self.db_name = config.get(CONFIG_PARAM_DB_NAME)
         self.db_port = config.get(CONFIG_PARAM_DB_PORT)
         self.db_host = config.get(CONFIG_PARAM_DB_HOST)

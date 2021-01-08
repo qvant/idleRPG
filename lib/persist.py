@@ -59,7 +59,7 @@ class Persist:
             telegram_id \
                 in self.cursor:
 
-            player = Character(name, class_by_name[class_name], telegram_id=telegram_id)
+            player = Character(name, class_by_name[class_name], telegram_id=telegram_id, is_created=False)
             player.level = level
             player.exp = exp
             player.hp = hp

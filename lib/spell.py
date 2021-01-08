@@ -16,4 +16,4 @@ class Spell:
         return round((self.max_damage - self.min_damage) * random.random()) + self.min_damage
 
     def __str__(self):
-        return "{0} cost {1} min damage {2} max damage {3}".format(self.name, self.cost, self.min_damage, self.max_damage)
+        return "{0} (cost: {1} mp, min damage: {2}, max damage: {3})".format(self.name, self.cost, self.min_damage, self.max_damage)

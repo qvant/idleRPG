@@ -72,6 +72,7 @@ def init():
     bot_queue = QueueListener(config)
 
     Character.set_logger(config)
+    Character.set_history_length(config)
 
     f = "db\\classes.json"
     fp = codecs.open(f, 'r', "utf-8")
@@ -224,7 +225,7 @@ def main():
                 else:
                     app_log.error(err)
             db.save_character(character=i)
-            game_log.info(i)
+            game_log.debug(i)
             player_cnt += 1
             if player_cnt >= config.char_batch_size > 0:
                 player_cnt = 0

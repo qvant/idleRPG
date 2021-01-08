@@ -6,7 +6,7 @@ import math
 
 
 class Character:
-    def __init__(self, name, char_class, telegram_id=None):
+    def __init__(self, name, char_class, telegram_id=None, is_created=True):
         self.id = None
         self.telegram_id = telegram_id
         self.name = name
@@ -39,11 +39,19 @@ class Character:
         self.weapon = None
         self.char_class.init_character(character=self)
         self.need_save = False
-        self.logger.info('Character {} {} created'.format(self.name, self.class_name))
+        self.history = []
+        if is_created:
+            self.logger.info('Character {} {} created'.format(self.name, self.class_name))
+        else:
+            self.logger.info('Character {} {} loaded from db'.format(self.name, self.class_name))
 
     @classmethod
     def set_logger(cls, config):
         cls.logger = get_logger(LOG_CHARACTER, config.log_level)
+
+    @classmethod
+    def set_history_length(cls, config):
+        cls.history_length = config.char_history_len
 
     @property
     def attack(self):
@@ -60,6 +68,12 @@ class Character:
         else:
             item_bonus = 0
         return self.base_defence + item_bonus
+
+    def save_history(self, message):
+        while len(self.history) >= self.history_length:
+            del self.history[0]
+        self.history.append(message)
+        self.logger.info(message)
 
     def set_action(self, action):
         if action not in ACTIONS:
@@ -102,7 +116,7 @@ class Character:
         self.enemy = None
         self.dead = False
         self.need_save = True
-        self.logger.info("{0} raised from dead".format(self.name))
+        self.save_history("{0} raised from dead".format(self.name))
 
     def die(self):
         self.hp = 0
@@ -114,25 +128,25 @@ class Character:
         self.deaths += 1
         self.need_save = True
         self.wait_counter += RESURRECT_TIMER
-        self.logger.info("{0} die horrible".format(self.name))
+        if self.enemy is not None:
+            self.save_history("{0} die horrible from the hands of {1}".format(self.name, self.enemy))
+        else:
+            self.save_history("{0} die horrible".format(self.name))
 
     def drink_health_potion(self):
         if self.health_potions > 0:
+            self.save_history("{0}, while having only {1} hp, feel himself in danger and drink health potion".
+                              format(self.name, self.hp))
             self.health_potions -= 1
             self.hp = self.max_hp
             self.need_save = True
-            self.logger.debug("{0} drink health potion".format(self.name), LOG_DEBUG)
-        else:
-            self.logger.debug("{0} have no health potions".format(self.name), LOG_DEBUG)
 
     def drink_mana_potion(self):
         if self.mana_potions > 0:
+            self.save_history("{0}, while having only {1} mp, drink mana potion".format(self.name, self.mp))
             self.mana_potions -= 1
             self.mp = self.max_mp
             self.need_save = True
-            self.logger.debug("{0} drink mana potion".format(self.name), LOG_DEBUG)
-        else:
-            self.logger.debug("{0} have no mana potions".format(self.name), LOG_DEBUG)
 
     def fight(self):
         if self.enemy is not None:
@@ -142,14 +156,16 @@ class Character:
             if self.ai.retreat_hp_threshold >= self.hp_percent or self.enemy.attack >= self.hp:
                 # success
                 if check_chance(0.5):
-                    self.logger.info("{0} run away from {1}".format(self.name, self.enemy.name))
+                    self.save_history("{0} while having only {2} hp, cowardly run away from {1}".
+                                      format(self.name, self.enemy.name, self.hp))
                     self.give_exp(round(self.enemy.exp * EXP_FOR_RETREAT_RATIO))
                     self.set_action(ACTION_RETREAT)
                     self.enemy = None
                 else:
                     # no penalty for fail
                     pass
-                    self.logger.info("{0} tried to run from {1}, but failed".format(self.name, self.enemy.name))
+                    self.save_history("{0}, while having only {2} hp, tried to run from {1}, but failed".
+                                      format(self.name, self.enemy.name, self.hp))
         if self.enemy is not None:
             # decise if need to cast
             made_cast = False
@@ -172,9 +188,11 @@ class Character:
                                     spell = sp
                     if spell is not None:
                         made_cast = True
-                        self.enemy.hp -= spell.roll_damage()
+                        dmg = spell.roll_damage()
+                        self.enemy.hp -= dmg
                         self.mp -= spell.cost
-                        self.logger.debug("{0} casted {1}".format(self.name, spell.name), LOG_DEBUG)
+                        self.save_history("{0} casted {1} into {2} and inflicted {3} damage".
+                                          format(self.name, spell.name, self.enemy.name, dmg))
             self.hp -= max(self.enemy.attack - self.defence, 1)
             if not made_cast:
                 self.enemy.hp -= max(self.attack - self.enemy.defence, 0)
@@ -184,11 +202,14 @@ class Character:
                 self.give_exp(self.enemy.exp)
                 self.give_gold(self.enemy.gold)
                 self.monsters_killed += 1
-                self.logger.info("{0} killed {1}".format(self.name, self.enemy.name))
+                self.save_history("{0} killed {1} and received {2} gold and {3} exp".format(self.name, self.enemy.name,
+                                                                                            self.enemy.gold,
+                                                                                            self.enemy.exp))
                 self.set_enemy(None)
 
     def set_quest(self, quest):
         self.quest = quest
+        self.save_history("{0} accepted quest \"{1}\"".format(self.name, self.quest))
 
     def move(self, distance=1):
         self.town_distance += distance
@@ -203,7 +224,7 @@ class Character:
             self.quest_progress = 0
             self.give_exp(self.level * 100)
             self.give_gold(self.level * 100)
-            self.logger.info("{0} completed quest {1}".format(self.name, self.quest))
+            self.save_history("{0} completed quest \"{1}\"".format(self.name, self.quest))
             self.set_quest(None)
             self.set_action(ACTION_NONE)
             self.quests_complete += 1
@@ -223,7 +244,7 @@ class Character:
         self.rest()
         self.exp = 0
         self.level += 1
-        self.logger.info("{0} reached level {1}".format(self.name, self.level))
+        self.save_history("{0} reached level {1}".format(self.name, self.level))
 
     def do_shopping(self):
         gold_hp_potion = math.trunc(self.gold / 100 * self.ai.health_potion_gold_percent)
@@ -233,7 +254,7 @@ class Character:
                 self.gold -= HEALTH_POTION_PRICE
                 gold_hp_potion -= HEALTH_POTION_PRICE
                 self.health_potions += 1
-                self.logger.debug("{0} bought health potion".format(self.name), LOG_TRACE)
+                self.save_history("{0} bought health potion".format(self.name))
             else:
                 break
         while gold_mp_potion > 0 and self.mana_potions < self.level * 2:
@@ -241,7 +262,7 @@ class Character:
                 self.gold -= MANA_POTION_PRICE
                 gold_mp_potion -= MANA_POTION_PRICE
                 self.mana_potions += 1
-                self.logger.debug("{0} bought mana potion".format(self.name), LOG_TRACE)
+                self.save_history("{0} bought mana potion".format(self.name))
             else:
                 break
         armor = Item(self.level, ITEM_SLOT_ARMOR)
@@ -249,23 +270,56 @@ class Character:
             if self.armor is None or self.armor.level < armor.level:
                 self.gold -= armor.price
                 self.armor = armor
+                self.save_history("{0} bought {1} for {2} gold".format(self.name, armor, armor.price))
         weapon = Item(self.level, ITEM_SLOT_WEAPON)
         if weapon.price <= self.gold:
             if self.weapon is None or self.weapon.level < weapon.level:
                 self.gold -= weapon.price
                 self.weapon = weapon
+                self.save_history("{0} bought {1} for {2} gold".format(self.name, weapon, weapon.price))
         self.set_action(ACTION_NONE)
         self.need_save = True
 
     def rest(self):
+        rec_hp = max(self.max_hp - self.hp, 0)
+        rec_mp = max(self.max_mp - self.mp, 0)
         self.hp = self.max_hp
         self.mp = self.max_mp
         self.set_action(ACTION_NONE)
         self.need_save = True
+        self.save_history("{0} rested and recovered {1} hp and {2} mp".format(self.name, rec_hp, rec_mp))
 
     def __str__(self):
-        res = "{0} is level {8} {1}. HP: {2} MP: {3}, EXP: {7}. He is {4} now. He's in {5} miles from town and complete quest \"{9}\" on {6}".\
-            format(self.name, self.class_name, self.hp, self.mp,  ACTION_NAMES[self.action], self.town_distance, self.quest_progress, self.exp, self.level, self.quest)
+        res = "{0} is level {8} {1}. HP: {2} MP: {3}, EXP: {7}. He is {4} now. He's in {5} miles from town " \
+              "and doing quest \"{9}\" ( {6} percent complete)".\
+            format(self.name, self.class_name, self.hp, self.mp,  ACTION_NAMES[self.action], self.town_distance,
+                   self.quest_progress, self.exp, self.level, self.quest)
+        res += chr(10)
+        res += chr(10)
+        if self.weapon is not None:
+            res += "He's equipped with {0}".format(self.weapon)
+        if self.armor is not None:
+            res += "He's wearing {0}".format(self.armor)
+        res += chr(10)
+        first_spell = True
+        for i in self.spells:
+            if first_spell:
+                first_spell = False
+                res += "He know spells:"
+                res += chr(10)
+            res += "  "
+            res += str(i)
+            res += chr(10)
+        if first_spell:
+            res += "He doesn't know any spells."
+        res += chr(10)
+        res += "He have {0} gold, {1} health and {2} mana potions".format(self.gold, self.health_potions,
+                                                                          self.mana_potions)
+        res += chr(10)
+        res += chr(10)
+        for i in self.history:
+            res += i
+            res += chr(10)
         if self.enemy is not None and not self.dead:
             res += chr(10) + "In fight with: {0}".format(self.enemy)
         if self.dead:

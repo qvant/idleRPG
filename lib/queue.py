@@ -50,7 +50,7 @@ class QueueListener:
             self.channel.queue_declare(queue=QUEUE_NAME_DICT, durable=True)
             self.channel.queue_declare(queue=QUEUE_NAME_CMD, durable=True)
             self.channel.queue_declare(queue=QUEUE_NAME_RESPONSES, durable=True)
-        except BaseException as exc:
+        except pika.exceptions.AMQPError as exc:
             self.logger.critical(exc)
             self.enabled = False
 
@@ -60,68 +60,72 @@ class QueueListener:
     def listen(self, player_list, db):
         if not self.enabled:
             return
-        msg_proceed = 0
-        start_time = datetime.datetime.now()
-        class_list = get_class_names()
-        msg_cnt = 0
-        for method_frame, properties, body in self.channel.consume(QUEUE_NAME_INIT, inactivity_timeout=0.01):
-            # if not timeout
-            if method_frame is not None:
-                self.logger.info("Received message {0}, delivery tag {1} in queue".format(body,
-                                                                                          method_frame.delivery_tag,
-                                                                                          QUEUE_NAME_INIT))
-                response = json.dumps(class_list)
-                self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
-                self.logger.info("For class list request with  delivery tag {0} sent responce ".format(
-                    method_frame.delivery_tag, response))
-                # Acknowledge the message
-                self.channel.basic_ack(method_frame.delivery_tag)
-                self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
-                msg_proceed += 1
-                msg_cnt += 1
-                if msg_cnt >= self.batch_size > 0:
-                    self.logger.info("Proceed {0} messages in queue {1}, interrupt".format(msg_cnt,
-                                                                                           QUEUE_NAME_DICT))
-                    break
-            else:
-                self.logger.info("No more messages in queue {0}".format(QUEUE_NAME_DICT))
-                break
-        self.logger.info("Processing init bot queue done")
-        self.channel.cancel()
-        msg_cnt = 0
-        for method_frame, properties, body in self.channel.consume(QUEUE_NAME_CMD, inactivity_timeout=0.01):
-
-            # if not timeout
-            if method_frame is not None:
-                self.logger.info("Received message {0}, delivery tag {1} in queue".format(body,
-                                                                                          method_frame.delivery_tag,
-                                                                                          QUEUE_NAME_CMD))
-                msg = json.loads(body)
-                cmd = msg.get("cmd_type")
-                if cmd == CMD_CREATE_CHARACTER:
-                    self.create_character_handler(msg, db, class_list, player_list, method_frame.delivery_tag)
-                elif cmd == CMD_DELETE_CHARACTER:
-                    self.delete_character_handler(msg, db, player_list, method_frame.delivery_tag)
-                elif cmd == CMD_GET_CHARACTER_STATUS:
-                    self.get_character_status_handler (msg, db, player_list, method_frame.delivery_tag)
+        try:
+            msg_proceed = 0
+            start_time = datetime.datetime.now()
+            class_list = get_class_names()
+            msg_cnt = 0
+            for method_frame, properties, body in self.channel.consume(QUEUE_NAME_INIT, inactivity_timeout=0.01):
+                # if not timeout
+                if method_frame is not None:
+                    self.logger.info("Received message {0}, delivery tag {1} in queue".format(body,
+                                                                                              method_frame.delivery_tag,
+                                                                                              QUEUE_NAME_INIT))
+                    response = json.dumps(class_list)
+                    self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
+                    self.logger.info("For class list request with  delivery tag {0} sent responce ".format(
+                        method_frame.delivery_tag, response))
+                    # Acknowledge the message
+                    self.channel.basic_ack(method_frame.delivery_tag)
+                    self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
+                    msg_proceed += 1
+                    msg_cnt += 1
+                    if msg_cnt >= self.batch_size > 0:
+                        self.logger.info("Proceed {0} messages in queue {1}, interrupt".format(msg_cnt,
+                                                                                               QUEUE_NAME_DICT))
+                        break
                 else:
-                    self.logger.error("Message with command type {0} not supported".format(cmd))
-                # Acknowledge the message
-                self.channel.basic_ack(method_frame.delivery_tag)
-                self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
-                msg_proceed += 1
-                msg_cnt += 1
-                if msg_cnt >= self.batch_size > 0:
-                    self.logger.info("Proceed {0} messages in queue {1}, interrupt".format(msg_cnt,
-                                                                                           QUEUE_NAME_CMD))
+                    self.logger.info("No more messages in queue {0}".format(QUEUE_NAME_DICT))
                     break
-            else:
-                self.logger.info("No more messages in queue {0}".format(QUEUE_NAME_CMD))
-                break
-        self.channel.cancel()
-        end_time = datetime.datetime.now()
-        self.logger.info("Queue processing done, started at: {0}, ended at: {1}, {2} messages proceed".format(
-                start_time, end_time, msg_proceed))
+            self.logger.info("Processing init bot queue done")
+            self.channel.cancel()
+            msg_cnt = 0
+            for method_frame, properties, body in self.channel.consume(QUEUE_NAME_CMD, inactivity_timeout=0.01):
+
+                # if not timeout
+                if method_frame is not None:
+                    self.logger.info("Received message {0}, delivery tag {1} in queue".format(body,
+                                                                                              method_frame.delivery_tag,
+                                                                                              QUEUE_NAME_CMD))
+                    msg = json.loads(body)
+                    cmd = msg.get("cmd_type")
+                    if cmd == CMD_CREATE_CHARACTER:
+                        self.create_character_handler(msg, db, class_list, player_list, method_frame.delivery_tag)
+                    elif cmd == CMD_DELETE_CHARACTER:
+                        self.delete_character_handler(msg, db, player_list, method_frame.delivery_tag)
+                    elif cmd == CMD_GET_CHARACTER_STATUS:
+                        self.get_character_status_handler (msg, db, player_list, method_frame.delivery_tag)
+                    else:
+                        self.logger.error("Message with command type {0} not supported".format(cmd))
+                    # Acknowledge the message
+                    self.channel.basic_ack(method_frame.delivery_tag)
+                    self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
+                    msg_proceed += 1
+                    msg_cnt += 1
+                    if msg_cnt >= self.batch_size > 0:
+                        self.logger.info("Proceed {0} messages in queue {1}, interrupt".format(msg_cnt,
+                                                                                               QUEUE_NAME_CMD))
+                        break
+                else:
+                    self.logger.info("No more messages in queue {0}".format(QUEUE_NAME_CMD))
+                    break
+            self.channel.cancel()
+            end_time = datetime.datetime.now()
+            self.logger.info("Queue processing done, started at: {0}, ended at: {1}, {2} messages proceed".format(
+                    start_time, end_time, msg_proceed))
+        except pika.exceptions.AMQPError as exc:
+            self.logger.critical(exc)
+            self.enabled = False
 
     def create_character_handler(self, cmd, db, class_list, player_list, delivery_tag):
         char_name = cmd.get("name")

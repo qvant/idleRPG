@@ -23,9 +23,12 @@ class Config:
         self.server_name = config.get(CONFIG_PARAM_SERVER_NAME)
         self.halt_on_game_errors = config.get(CONFIG_PARAM_HALT_ON_GAME_ERRORS)
         self.halt_on_persist_errors = config.get(CONFIG_PARAM_HALT_ON_PERSIST_ERRORS)
+        self.halt_on_queue_errors = config.get(CONFIG_PARAM_HALT_ON_QUEUE_ERRORS)
         self.queue_enabled = config.get(CONFIG_PARAM_QUEUE_ENABLED)
         self.queue_host = config.get(CONFIG_PARAM_QUEUE_HOST)
         self.queue_port = config.get(CONFIG_PARAM_QUEUE_PORT)
+        self.queue_user = config.get(CONFIG_PARAM_QUEUE_USER)
+        self.queue_password_read = config.get(CONFIG_PARAM_QUEUE_PASSWORD)
         self.queue_batch_size = config.get(CONFIG_PARAM_QUEUE_BATCH_SIZE)
         self.char_batch_size = config.get(CONFIG_PARAM_CHAR_BATCH_SIZE)
         self.char_history_len = config.get(CONFIG_PARAM_CHAR_HISTORY_LEN)
@@ -47,16 +50,38 @@ class Config:
         else:
             self.logger.info("DB password in plain text, start encrypt")
             password = encrypt_password(self.db_password_read, self.server_name, self.db_port)
-            self._save_password(password)
+            self._save_db_password(password)
             self.logger.info("DB password encrypted and save back in config")
             self.db_password = self.db_password_read
 
-    def _save_password(self, password):
+        if is_password_encrypted(self.queue_password_read):
+            self.logger.info("MQ password encrypted, do nothing")
+            self.queue_password = decrypt_password(self.queue_password_read, self.queue_host, self.queue_port)
+        elif self.queue_password_read is not None:
+            self.logger.info("MQ password in plain text, start encrypt")
+            password = encrypt_password(self.queue_password_read, self.queue_host, self.queue_port)
+            self._save_mq_password(password)
+            self.logger.info("MQ password encrypted and save back in config")
+            self.queue_password = self.queue_password_read
+        else:
+            self.logger.info("MQ password empty")
+            self.queue_password = None
+
+    def _save_db_password(self, password):
         fp = codecs.open(self.file_path, 'r', "utf-8")
         config = json.load(fp)
         fp.close()
         fp = codecs.open(self.file_path, 'w', "utf-8")
         config[CONFIG_PARAM_DB_PASSWORD] = password
+        json.dump(config, fp, indent=2)
+        fp.close()
+
+    def _save_mq_password(self, password):
+        fp = codecs.open(self.file_path, 'r', "utf-8")
+        config = json.load(fp)
+        fp.close()
+        fp = codecs.open(self.file_path, 'w', "utf-8")
+        config[CONFIG_PARAM_QUEUE_PASSWORD] = password
         json.dump(config, fp, indent=2)
         fp.close()
 

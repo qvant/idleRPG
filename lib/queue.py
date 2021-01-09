@@ -32,18 +32,27 @@ class QueueListener:
         self.host = config.queue_host
         self.port = config.queue_port
         self.batch_size = config.queue_batch_size
-        if reload:
+        if reload and self.channel is not None:
             self.channel.close()
             self.queue.close()
         else:
             self.queue = None
             self.channel = None
-        self.queue = pika.BlockingConnection(pika.ConnectionParameters(host=self.host, port=self.port))
-        self.channel = self.queue.channel()
-        self.channel.queue_declare(queue=QUEUE_NAME_INIT)
-        self.channel.queue_declare(queue=QUEUE_NAME_DICT, durable=True)
-        self.channel.queue_declare(queue=QUEUE_NAME_CMD, durable=True)
-        self.channel.queue_declare(queue=QUEUE_NAME_RESPONSES, durable=True)
+        try:
+            if config.queue_password is not None:
+                cred = pika.credentials.PlainCredentials(config.queue_user, config.queue_password)
+                self.queue = pika.BlockingConnection(
+                    pika.ConnectionParameters(host=self.host, port=self.port, credentials=cred))
+            else:
+                self.queue = pika.BlockingConnection(pika.ConnectionParameters(host=self.host, port=self.port))
+            self.channel = self.queue.channel()
+            self.channel.queue_declare(queue=QUEUE_NAME_INIT)
+            self.channel.queue_declare(queue=QUEUE_NAME_DICT, durable=True)
+            self.channel.queue_declare(queue=QUEUE_NAME_CMD, durable=True)
+            self.channel.queue_declare(queue=QUEUE_NAME_RESPONSES, durable=True)
+        except BaseException as exc:
+            self.logger.critical(exc)
+            self.enabled = False
 
     def renew(self, config):
         self.__init__(config, reload=True)

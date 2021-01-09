@@ -7,7 +7,7 @@ from .consts import CONFIG_PARAM_SECRET_CONST
 
 
 def is_password_encrypted(password):
-    return password[-2:] == '=='
+    return password is not None and password[-2:] == '=='
 
 
 def set_up_encryption(server_name, port):

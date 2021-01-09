@@ -197,8 +197,8 @@ class QueueListener:
                                                                                                QUEUE_NAME_RESPONSES))
 
     def get_character_status_handler(self, cmd, db, player_list, delivery_tag):
-        print("try to find character")
         telegram_id = cmd.get("user_id")
+        self.logger.info("try to find character with telegram id {0}".format(telegram_id))
         char_info = ''
         if telegram_id is None:
             result = 'telegram_id is empty'

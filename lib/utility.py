@@ -5,7 +5,7 @@ from logging import INFO
 from logging.handlers import RotatingFileHandler
 
 FORMATTER = logging.Formatter("[%(levelname)s] [%(name)s] - [%(asctime)s]: %(message)s")
-LOG_DIR = "logs\\"
+LOG_DIR = "logs//"
 
 global log_level
 

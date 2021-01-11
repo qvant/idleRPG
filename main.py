@@ -55,7 +55,7 @@ def init():
 
     parser = argparse.ArgumentParser(description='Idle RPG server.')
     parser.add_argument("--clear", '-c', help="Restart with empty character base", action="store_true", default=False)
-    parser.add_argument("--config", '-cfg', help="Path to config file", action="store", default="cfg\\main.json")
+    parser.add_argument("--config", '-cfg', help="Path to config file", action="store", default="cfg//main.json")
     args = parser.parse_args()
     if args.clear:
         start_mode = START_CLEAR
@@ -74,7 +74,7 @@ def init():
     Character.set_logger(config)
     Character.set_history_length(config)
 
-    f = "db\\classes.json"
+    f = "db//classes.json"
     fp = codecs.open(f, 'r', "utf-8")
     class_list_j = json.load(fp)
     class_list = []
@@ -92,7 +92,7 @@ def init():
         class_list.append(temp_class)
     set_class_list(class_list)
 
-    f = "db\\ai.json"
+    f = "db//ai.json"
     fp = codecs.open(f, 'r', "utf-8")
     ai_list_j = json.load(fp)
     ai_list = []
@@ -104,7 +104,7 @@ def init():
                               max_attack_instead_spell=ai_list_j[i]["max_attack_instead_spell"]))
     set_ai_list(ai_list)
 
-    f = "db\\quests.json"
+    f = "db//quests.json"
     fp = codecs.open(f, 'r', "utf-8")
     q_list_j = json.load(fp)
     quest_verbs = q_list_j["verb"]
@@ -112,7 +112,7 @@ def init():
     quest_adjective = q_list_j["adjective"]
     quest_noun = q_list_j["noun"]
 
-    f = "db\\monsters.json"
+    f = "db//monsters.json"
     fp = codecs.open(f, 'r', "utf-8")
     m_list_j = json.load(fp)
     monster_list = []
@@ -124,12 +124,12 @@ def init():
                                     level=m_list_j[i]["level"],
                                     gold=m_list_j[i]["gold"],))
 
-    f = "db\\weapons.json"
+    f = "db//weapons.json"
     fp = codecs.open(f, 'r', "utf-8")
     weapon_list = json.load(fp)
     Item.weapon_list = weapon_list
 
-    f = "db\\armor.json"
+    f = "db//armor.json"
     fp = codecs.open(f, 'r', "utf-8")
     armor_list = json.load(fp)
     Item.armor_list = armor_list

@@ -245,8 +245,9 @@ def main():
             db.renew(config)
         turn_end_time = datetime.datetime.now()
         if config.turn_time > 0 and turn_end_time > turn_end_time_r:
-            app_log.warning("Turn {4} takes too long: started at: {0}, ended at: {1}, should ended: {2} should take:{3}".format(
-                turn_start_time, turn_end_time, turn_end_time_r, config.turn_time, turn_number))
+            app_log.warning("Turn {4} takes too long: started at: {0}, ended at: {1}, should ended: {2} "
+                            "should take:{3}".format(turn_start_time, turn_end_time, turn_end_time_r, config.turn_time,
+                                                     turn_number))
         else:
             app_log.info("Turn {4} ended: started at: {0}, ended at: {1}, should ended: {2} should take:{3}".format(
                 turn_start_time, turn_end_time, turn_end_time_r, config.turn_time, turn_number))

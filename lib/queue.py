@@ -105,7 +105,7 @@ class QueueListener:
                     elif cmd == CMD_DELETE_CHARACTER:
                         self.delete_character_handler(msg, db, player_list, method_frame.delivery_tag)
                     elif cmd == CMD_GET_CHARACTER_STATUS:
-                        self.get_character_status_handler (msg, db, player_list, method_frame.delivery_tag)
+                        self.get_character_status_handler(msg, db, player_list, method_frame.delivery_tag)
                     else:
                         self.logger.error("Message with command type {0} not supported".format(cmd))
                     # Acknowledge the message
@@ -123,7 +123,7 @@ class QueueListener:
             self.channel.cancel()
             end_time = datetime.datetime.now()
             self.logger.info("Queue processing done, started at: {0}, ended at: {1}, {2} messages proceed".format(
-                    start_time, end_time, msg_proceed))
+                start_time, end_time, msg_proceed))
         except pika.exceptions.AMQPError as exc:
             self.logger.critical(exc)
             self.enabled = False

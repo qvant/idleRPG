@@ -86,11 +86,12 @@ class Character:
     def set_enemy(self, enemy):
         self.enemy = copy.deepcopy(enemy)
 
-    def set_id(self, id):
+    def set_id(self, db_id):
         if self.id is None:
-            self.id = id
+            self.id = db_id
         else:
-            raise ValueError("Character {0} already has an id {1}, when attempted to set id = {2}".format(self, self.id, id))
+            raise ValueError("Character {0} already has an id {1}, when attempted to set id = {2}".
+                             format(self, self.id, db_id))
 
     @property
     def ready(self):

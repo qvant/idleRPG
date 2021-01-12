@@ -2,6 +2,7 @@ import random
 from .consts import ITEM_SLOT_ARMOR, ITEM_SLOT_WEAPON
 from .utility import get_random_array_element
 
+
 class Item:
     weapon_list = {}
     armor_list = {}
@@ -10,7 +11,7 @@ class Item:
         name = ''
         if slot == ITEM_SLOT_WEAPON:
             name = get_random_array_element(Item.weapon_list["affixes"]) + " "
-            name += get_random_array_element(Item.weapon_list["types"])+ " "
+            name += get_random_array_element(Item.weapon_list["types"]) + " "
             name += get_random_array_element(Item.weapon_list["suffixes"])
         if slot == ITEM_SLOT_ARMOR:
             name = get_random_array_element(Item.armor_list["affixes"]) + " "

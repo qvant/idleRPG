@@ -55,7 +55,7 @@ class Persist:
                 from idle_rpg_base.characters
         """)
         cnt = 0
-        for id, name, class_name, level, exp, hp, max_hp, mp, max_mp, base_attack, base_defence, monsters_killed,\
+        for db_id, name, class_name, level, exp, hp, max_hp, mp, max_mp, base_attack, base_defence, monsters_killed,\
             quests_completed, gold, health_potions, mana_potions, deaths, weapon_name, weapon_level, armor_name, \
             armor_level, telegram_id \
                 in self.cursor:
@@ -77,7 +77,7 @@ class Persist:
             player.deaths = deaths
             player.ai = ai
             player.need_save = False
-            player.set_id(id)
+            player.set_id(db_id)
             if len(weapon_name) > 0:
                 weapon = Item(1, ITEM_SLOT_WEAPON)
                 weapon.name = weapon_name
@@ -136,7 +136,8 @@ class Persist:
                             %s, %s, %s, 
                             %s, %s, %s);
                  """,
-                                        (character.name, character.class_name, character.level, character.exp, character.hp,
+                                        (character.name, character.class_name, character.level, character.exp,
+                                         character.hp,
                                          character.max_hp, character.mp, character.max_mp,
                                          character.base_attack, character.base_defence, character.monsters_killed,
                                          character.quests_complete,
@@ -144,7 +145,8 @@ class Persist:
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,
                                          armor_level, character.telegram_id))
-                    self.cursor.execute("""select id from idle_rpg_base.characters where name = %s;""", (character.name, ))
+                    self.cursor.execute("""select id from idle_rpg_base.characters where name = %s;""",
+                                        (character.name,))
                     character.id, = self.cursor.fetchone()
 
                 else:
@@ -158,7 +160,8 @@ class Persist:
                                 dt_updated = current_timestamp
                          where id = %s;
                          """,
-                                        (character.name, character.class_name, character.level, character.exp, character.hp,
+                                        (character.name, character.class_name, character.level, character.exp,
+                                         character.hp,
                                          character.max_hp, character.mp, character.max_mp,
                                          character.base_attack, character.base_defence, character.monsters_killed,
                                          character.quests_complete,

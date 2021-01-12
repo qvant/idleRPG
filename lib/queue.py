@@ -73,7 +73,7 @@ class QueueListener:
                                                                                               QUEUE_NAME_INIT))
                     response = json.dumps(class_list)
                     self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
-                    self.logger.info("For class list request with  delivery tag {0} sent responce ".format(
+                    self.logger.info("For class list request with  delivery tag {0} sent response".format(
                         method_frame.delivery_tag, response))
                     # Acknowledge the message
                     self.channel.basic_ack(method_frame.delivery_tag)

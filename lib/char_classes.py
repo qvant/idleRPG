@@ -25,6 +25,3 @@ class CharClass:
         character.max_mp += self.init_mp
         character.base_attack += self.init_attack
         character.base_defence += self.init_defence
-
-
-

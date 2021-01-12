@@ -42,5 +42,3 @@ def get_logger(logger_name, level=INFO, is_system=False):
     # with this pattern, it's rarely necessary to propagate the error up to parent
     logger.propagate = False
     return logger
-
-

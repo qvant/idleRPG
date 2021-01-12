@@ -53,14 +53,6 @@ QUEUE_NAME_DICT = "DictionaryQueue"
 QUEUE_NAME_CMD = "CommandQueue"
 QUEUE_NAME_RESPONSES = "ResponsesQueue"
 
-
-LOG_TRACE = 10
-LOG_DEBUG = 30
-LOG_INFO = 50
-LOG_WARN = 80
-LOG_ERROR = 90
-LOG_CRITICAL = 100
-
 LOG_CONFIG = "Config"
 LOG_CHARACTER = "Character"
 LOG_GAME = "Game"

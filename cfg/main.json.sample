@@ -16,6 +16,7 @@
   "QUEUE_ENABLED": true,
   "QUEUE_HOST": "localhost",
   "QUEUE_PORT": 5672,
+  "QUEUE_INTERVAL_ON_SLEEP": 3,
   "QUEUE_USER": "idle_rpg",
   "QUEUE_PASSWORD": "",
   "QUEUE_BATCH_SIZE": 100000,

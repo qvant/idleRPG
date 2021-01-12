@@ -28,6 +28,7 @@ class Config:
         self.queue_host = config.get(CONFIG_PARAM_QUEUE_HOST)
         self.queue_port = config.get(CONFIG_PARAM_QUEUE_PORT)
         self.queue_user = config.get(CONFIG_PARAM_QUEUE_USER)
+        self.queue_interval_on_sleep = config.get(CONFIG_PARAM_QUEUE_INTERVAL_ON_SLEEP)
         self.queue_password_read = config.get(CONFIG_PARAM_QUEUE_PASSWORD)
         self.queue_batch_size = config.get(CONFIG_PARAM_QUEUE_BATCH_SIZE)
         self.char_batch_size = config.get(CONFIG_PARAM_CHAR_BATCH_SIZE)

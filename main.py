@@ -250,7 +250,17 @@ def main():
             app_log.info("Turn {4} ended: started at: {0}, ended at: {1}, should ended: {2} should take:{3}".format(
                 turn_start_time, turn_end_time, turn_end_time_r, config.turn_time, turn_number))
             if config.turn_time > 0:
-                time.sleep((turn_end_time_r - turn_end_time).seconds)
+                if config.queue_interval_on_sleep is not None:
+                    while datetime.datetime.now() <= turn_end_time_r:
+                        app_log.debug("Sleep in main cycle")
+                        # when sleep, check and process message queue
+                        time.sleep(min((turn_end_time_r - datetime.datetime.now()).seconds,
+                                       config.queue_interval_on_sleep))
+                        app_log.debug("Wake up to process queue")
+                        bot_queue.listen(player_list, db)
+                else:
+                    app_log.debug("Sleep in main cycle")
+                    time.sleep((turn_end_time_r - turn_end_time).seconds)
         if turn_number >= config.max_turns > 0:
             break
         bot_queue.listen(player_list, db)

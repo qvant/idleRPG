@@ -1,6 +1,6 @@
-import sys
-import random
 import logging
+import random
+import sys
 from logging import INFO
 from logging.handlers import RotatingFileHandler
 

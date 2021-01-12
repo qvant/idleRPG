@@ -1,21 +1,22 @@
-from lib.character import Character
 import argparse
 import codecs
-import json
-import random
 import copy
 import datetime
+import json
+import random
 import time
-from lib.char_classes import CharClass
-from lib.spell import Spell
-from lib.monster import Monster
+
 from lib.ai import CharAI
-from lib.consts import *
+from lib.char_classes import CharClass
+from lib.character import Character
 from lib.config import Config
+from lib.consts import *
 from lib.dictionary import set_class_list, set_ai_list
 from lib.item import Item
+from lib.monster import Monster
 from lib.persist import Persist
 from lib.queue import QueueListener
+from lib.spell import Spell
 from lib.utility import check_chance, get_logger
 
 global player_list

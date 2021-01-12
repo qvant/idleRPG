@@ -1,4 +1,5 @@
 import random
+
 from .consts import ITEM_SLOT_ARMOR, ITEM_SLOT_WEAPON
 from .utility import get_random_array_element
 

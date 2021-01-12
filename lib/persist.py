@@ -1,8 +1,9 @@
 import psycopg2
+
 from .character import Character
+from .consts import ITEM_SLOT_WEAPON, ITEM_SLOT_ARMOR, LOG_PERSIST
 from .item import Item
 from .utility import get_logger
-from .consts import ITEM_SLOT_WEAPON, ITEM_SLOT_ARMOR, LOG_PERSIST
 
 
 class Persist:

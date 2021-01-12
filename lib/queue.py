@@ -1,12 +1,13 @@
-import json
 import datetime
+import json
+
 import pika
+
+from .character import Character
 from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_CREATE_CHARACTER, CMD_DELETE_CHARACTER, \
     QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, LOG_QUEUE
 from .dictionary import get_class_names, get_class, get_ai
-from .character import Character
 from .utility import get_logger
-
 
 QUEUE_INIT_BATCH = 10
 QUEUE_STATUS_OK = 0

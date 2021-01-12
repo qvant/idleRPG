@@ -1,9 +1,10 @@
 import codecs
 import datetime
 import json
+
 from .consts import *
-from .utility import get_logger
 from .security import is_password_encrypted, encrypt_password, decrypt_password
+from .utility import get_logger
 
 
 class Config:

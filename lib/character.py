@@ -1,8 +1,9 @@
+import copy
+import math
+
 from .consts import *
 from .item import Item
 from .utility import check_chance, get_logger
-import copy
-import math
 
 
 class Character:

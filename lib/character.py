@@ -196,10 +196,10 @@ class Character:
                         self.save_history("{0} casted {1} into {2} and inflicted {3} damage".
                                           format(self.name, spell.name, self.enemy.name, dmg))
             self.hp -= max(self.enemy.attack - self.defence, 1)
-            if not made_cast:
-                self.enemy.hp -= max(self.attack - self.enemy.defence, 0)
             if self.hp <= 0:
                 self.die()
+            if not made_cast:
+                self.enemy.hp -= max(self.attack - self.enemy.defence, 0)
             if self.enemy.hp <= 0:
                 self.give_exp(self.enemy.exp)
                 self.give_gold(self.enemy.gold)
@@ -250,23 +250,20 @@ class Character:
 
     def do_shopping(self):
         gold_hp_potion = math.trunc(self.gold / 100 * self.ai.health_potion_gold_percent)
-        gold_mp_potion = math.trunc(self.gold / 100 * self.ai.mana_potion_gold_percent)
-        while gold_hp_potion > 0 and self.health_potions < self.level:
-            if self.gold >= HEALTH_POTION_PRICE:
-                self.gold -= HEALTH_POTION_PRICE
-                gold_hp_potion -= HEALTH_POTION_PRICE
-                self.health_potions += 1
-                self.save_history("{0} bought health potion".format(self.name))
-            else:
-                break
-        while gold_mp_potion > 0 and self.mana_potions < self.level * 2:
-            if self.gold >= MANA_POTION_PRICE:
-                self.gold -= MANA_POTION_PRICE
-                gold_mp_potion -= MANA_POTION_PRICE
-                self.mana_potions += 1
-                self.save_history("{0} bought mana potion".format(self.name))
-            else:
-                break
+        if self.max_mp > 0:
+            gold_mp_potion = math.trunc(self.gold / 100 * self.ai.mana_potion_gold_percent)
+        else:
+            gold_mp_potion = 0
+        potion_number = min(math.trunc(gold_hp_potion / HEALTH_POTION_PRICE), self.level)
+        if potion_number > 0:
+            self.gold -= HEALTH_POTION_PRICE * potion_number
+            self.health_potions += potion_number
+            self.save_history("{0} bought {1} health potions".format(self.name, potion_number))
+        potion_number = min(math.trunc(gold_mp_potion / MANA_POTION_PRICE), self.level * 2)
+        if potion_number > 0:
+            self.gold -= MANA_POTION_PRICE * potion_number
+            self.mana_potions += potion_number
+            self.save_history("{0} bought {1} mana potions".format(self.name, potion_number))
         armor = Item(self.level, ITEM_SLOT_ARMOR)
         if armor.price <= self.gold:
             if self.armor is None or self.armor.level < armor.level:

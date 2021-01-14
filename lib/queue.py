@@ -59,6 +59,10 @@ class QueueListener:
         self.__init__(config, reload=True)
 
     def listen(self, player_list, db):
+        self.listen_control()
+        self.listen_cmd(player_list, db)
+
+    def listen_control(self):
         if not self.enabled:
             return
         try:
@@ -89,8 +93,21 @@ class QueueListener:
                     self.logger.info("No more messages in queue {0}".format(QUEUE_NAME_DICT))
                     break
             self.logger.info("Processing init bot queue done")
+            end_time = datetime.datetime.now()
+            self.logger.info("Queue processing done, started at: {0}, ended at: {1}, {2} messages proceed".format(
+                start_time, end_time, msg_proceed))
             self.channel.cancel()
+        except pika.exceptions.AMQPError as exc:
+            self.logger.critical(exc)
+            self.enabled = False
+
+    def listen_cmd(self, player_list, db):
+        if not self.enabled:
+            return
+        try:
+            start_time = datetime.datetime.now()
             msg_cnt = 0
+            msg_proceed = 0
             for method_frame, properties, body in self.channel.consume(QUEUE_NAME_CMD, inactivity_timeout=0.01):
 
                 # if not timeout

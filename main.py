@@ -16,6 +16,7 @@ from lib.item import Item
 from lib.monster import Monster
 from lib.persist import Persist
 from lib.queue import QueueListener
+from lib.server import Server
 from lib.spell import Spell
 from lib.utility import check_chance, get_logger
 
@@ -34,6 +35,7 @@ global armor_list
 global app_log
 global game_log
 global bot_queue
+global server
 
 
 def init():
@@ -52,6 +54,7 @@ def init():
     global app_log
     global game_log
     global bot_queue
+    global server
     player_list = []
 
     parser = argparse.ArgumentParser(description='Idle RPG server.')
@@ -64,6 +67,8 @@ def init():
         start_mode = START_RESUME
 
     config = Config(args.config)
+
+    server = Server()
 
     app_log = get_logger(LOG_MAIN_APP, config.log_level, True)
     game_log = get_logger(LOG_GAME, config.log_level)
@@ -146,6 +151,7 @@ def make_quest():
     global quest_numbers
     global quest_adjective
     global quest_noun
+    global server
     ind_v = round(random.random() * len(quest_verbs)) - 1
     ind_n = round(random.random() * len(quest_numbers)) - 1
     ind_a = round(random.random() * len(quest_adjective)) - 1
@@ -210,7 +216,8 @@ def main():
     global db
     global config
     global bot_queue
-    turn_number = 0
+    global server
+    server.set_players(player_list)
     while True:
         turn_start_time = datetime.datetime.now()
         turn_end_time_r = turn_start_time + datetime.timedelta(seconds=config.turn_time)
@@ -230,8 +237,8 @@ def main():
             player_cnt += 1
             if player_cnt >= config.char_batch_size > 0:
                 player_cnt = 0
-                bot_queue.listen(player_list, db)
-        turn_number += 1
+                bot_queue.listen(server, player_list, db)
+        server.inc_turns()
         db.commit()
         config.renew_if_needed()
         if config.reloaded:
@@ -247,10 +254,10 @@ def main():
         if config.turn_time > 0 and turn_end_time > turn_end_time_r:
             app_log.warning("Turn {4} takes too long: started at: {0}, ended at: {1}, should ended: {2} "
                             "should take:{3}".format(turn_start_time, turn_end_time, turn_end_time_r, config.turn_time,
-                                                     turn_number))
+                                                     server.turn))
         else:
             app_log.info("Turn {4} ended: started at: {0}, ended at: {1}, should ended: {2} should take:{3}".format(
-                turn_start_time, turn_end_time, turn_end_time_r, config.turn_time, turn_number))
+                turn_start_time, turn_end_time, turn_end_time_r, config.turn_time, server.turn))
             if config.turn_time > 0:
                 if config.queue_interval_on_sleep is not None:
                     while datetime.datetime.now() <= turn_end_time_r:
@@ -259,13 +266,13 @@ def main():
                         time.sleep(min((turn_end_time_r - datetime.datetime.now()).seconds,
                                        config.queue_interval_on_sleep))
                         app_log.debug("Wake up to process queue")
-                        bot_queue.listen(player_list, db)
+                        bot_queue.listen(server, player_list, db)
                 else:
                     app_log.debug("Sleep in main cycle")
                     time.sleep((turn_end_time_r - turn_end_time).seconds)
-        if turn_number >= config.max_turns > 0:
+        if server.turn >= config.max_turns > 0 or server.is_shutdown:
             break
-        bot_queue.listen(player_list, db)
+        bot_queue.listen(server, player_list, db)
 
 
 if __name__ == '__main__':

@@ -2,10 +2,13 @@ import datetime
 import json
 
 import pika
+import sys
 
 from .character import Character
-from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_CREATE_CHARACTER, CMD_DELETE_CHARACTER, \
-    QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, LOG_QUEUE
+from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CLASS_LIST, CMD_CREATE_CHARACTER, \
+    CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
+    CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
+    CMD_SERVER_OK
 from .dictionary import get_class_names, get_class, get_ai
 from .utility import get_logger
 
@@ -58,11 +61,11 @@ class QueueListener:
     def renew(self, config):
         self.__init__(config, reload=True)
 
-    def listen(self, player_list, db):
-        self.listen_control()
-        self.listen_cmd(player_list, db)
+    def listen(self, server, player_list, db):
+        self.listen_control(server)
+        self.listen_cmd(server, player_list, db)
 
-    def listen_control(self):
+    def listen_control(self, server):
         if not self.enabled:
             return
         try:
@@ -76,10 +79,41 @@ class QueueListener:
                     self.logger.info("Received message {0}, delivery tag {1} in queue".format(body,
                                                                                               method_frame.delivery_tag,
                                                                                               QUEUE_NAME_INIT))
-                    response = json.dumps(class_list)
-                    self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
-                    self.logger.info("For class list request with  delivery tag {0} sent response".format(
-                        method_frame.delivery_tag, response))
+                    msg = json.loads(body)
+                    cmd = msg.get("cmd_type")
+                    if cmd == CMD_GET_CLASS_LIST:
+                        response = {"class_list": class_list, "cmd_type": CMD_SET_CLASS_LIST}
+                        response = json.dumps(response)
+                        self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
+                        self.logger.info("For class list request with delivery tag {0} sent response".format(
+                            method_frame.delivery_tag, response))
+                    elif cmd == CMD_GET_SERVER_STATS:
+                        response = {"server_info": str(server), "cmd_type": CMD_SERVER_STATS,
+                                    "user_id": msg.get("user_id")}
+                        response = json.dumps(response)
+                        self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
+                        self.logger.info("For server stats request with delivery tag {0} sent response {1}".format(
+                            method_frame.delivery_tag, response))
+                    elif cmd == CMD_SERVER_SHUTDOWN_IMMEDIATE:
+                        response = {"cmd_type": CMD_SERVER_OK,
+                                    "user_id": msg.get("user_id")}
+                        response = json.dumps(response)
+                        self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
+                        self.channel.cancel()
+                        self.logger.info("Received immediate shutdown command, finish work")
+                        self.channel.basic_ack(method_frame.delivery_tag)
+                        self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
+                        sys.exit(0)
+                    elif cmd == CMD_SERVER_SHUTDOWN_NORMAL:
+                        response = {"cmd_type": CMD_SERVER_OK,
+                                    "user_id": msg.get("user_id")}
+                        response = json.dumps(response)
+                        self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
+                        self.channel.cancel()
+                        self.logger.info("Received normal shutdown command, will finish work on the end of turn")
+                        server.shutdown()
+                    else:
+                        self.logger.error("Message {0} has unknown command type {1}".format(msg, cmd))
                     # Acknowledge the message
                     self.channel.basic_ack(method_frame.delivery_tag)
                     self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
@@ -94,6 +128,7 @@ class QueueListener:
                     break
             self.logger.info("Processing init bot queue done")
             end_time = datetime.datetime.now()
+            server.inc_sys_cmd(msg_proceed)
             self.logger.info("Queue processing done, started at: {0}, ended at: {1}, {2} messages proceed".format(
                 start_time, end_time, msg_proceed))
             self.channel.cancel()
@@ -101,11 +136,12 @@ class QueueListener:
             self.logger.critical(exc)
             self.enabled = False
 
-    def listen_cmd(self, player_list, db):
+    def listen_cmd(self, server, player_list, db):
         if not self.enabled:
             return
         try:
             start_time = datetime.datetime.now()
+            class_list = get_class_names()
             msg_cnt = 0
             msg_proceed = 0
             for method_frame, properties, body in self.channel.consume(QUEUE_NAME_CMD, inactivity_timeout=0.01):
@@ -139,6 +175,7 @@ class QueueListener:
                     break
             self.channel.cancel()
             end_time = datetime.datetime.now()
+            server.inc_user_cmd(msg_proceed)
             self.logger.info("Queue processing done, started at: {0}, ended at: {1}, {2} messages proceed".format(
                 start_time, end_time, msg_proceed))
         except pika.exceptions.AMQPError as exc:

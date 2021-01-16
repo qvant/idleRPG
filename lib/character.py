@@ -41,6 +41,7 @@ class Character:
         self.char_class.init_character(character=self)
         self.need_save = False
         self.history = []
+        self.effects = []
         if is_created:
             self.logger.info('Character {} {} created'.format(self.name, self.class_name))
         else:
@@ -254,12 +255,12 @@ class Character:
             gold_mp_potion = math.trunc(self.gold / 100 * self.ai.mana_potion_gold_percent)
         else:
             gold_mp_potion = 0
-        potion_number = min(math.trunc(gold_hp_potion / HEALTH_POTION_PRICE), self.level)
+        potion_number = min(math.trunc(gold_hp_potion / HEALTH_POTION_PRICE), self.level - self.health_potions)
         if potion_number > 0:
             self.gold -= HEALTH_POTION_PRICE * potion_number
             self.health_potions += potion_number
             self.save_history("{0} bought {1} health potions".format(self.name, potion_number))
-        potion_number = min(math.trunc(gold_mp_potion / MANA_POTION_PRICE), self.level * 2)
+        potion_number = min(math.trunc(gold_mp_potion / MANA_POTION_PRICE), self.level * 2 - self.mana_potions)
         if potion_number > 0:
             self.gold -= MANA_POTION_PRICE * potion_number
             self.mana_potions += potion_number
@@ -289,10 +290,12 @@ class Character:
         self.save_history("{0} rested and recovered {1} hp and {2} mp".format(self.name, rec_hp, rec_mp))
 
     def __str__(self):
-        res = "{0} is level {8} {1}. HP: {2} MP: {3}, EXP: {7}. He is {4} now. He's in {5} miles from town " \
-              "and doing quest \"{9}\" ( {6} percent complete)".\
-            format(self.name, self.class_name, self.hp, self.mp,  ACTION_NAMES[self.action], self.town_distance,
-                   self.quest_progress, self.exp, self.level, self.quest)
+        res = "{0} is level {8} {1}. HP: {2}/{3} MP: {4}/{5}, EXP: {6}. Attack {7}({8}), defence {9}({10})."\
+            .format(self.name, self.class_name, self.hp, self.max_mp, self.mp, self.max_mp, self.exp,
+                    self.base_attack, self.attack, self.base_defence, self.defence)
+        res += chr(10)
+        res += "He is {0} now. He's in {1} miles from town and doing quest \"{2}\" ( {3} percent complete)".\
+            format(ACTION_NAMES[self.action], self.town_distance, self.quest, self.quest_progress,)
         res += chr(10)
         res += chr(10)
         if self.weapon is not None:

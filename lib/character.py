@@ -224,7 +224,7 @@ class Character:
         self.quest_progress = round(self.quest_progress, 2)
         if self.quest_progress >= 100:
             self.quest_progress = 0
-            self.give_exp(self.level * 100)
+            self.give_exp(self.level * 300)
             self.give_gold(self.level * 100)
             self.save_history("{0} completed quest \"{1}\"".format(self.name, self.quest))
             self.set_quest(None)

@@ -168,7 +168,8 @@ def chose_action(player):
             player.set_action(ACTION_RETREAT)
         else:
             player.set_action(ACTION_QUEST)
-            player.set_quest(make_quest())
+            if player.quest is None:
+                player.set_quest(make_quest())
 
 
 def make_monster(player):

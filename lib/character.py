@@ -61,7 +61,10 @@ class Character:
             item_bonus = self.weapon.level
         else:
             item_bonus = 0
-        return self.base_attack + item_bonus
+        effect_bonus = 0
+        for i in self.effects:
+            effect_bonus += i.attack
+        return self.base_attack + item_bonus + effect_bonus
 
     @property
     def defence(self):
@@ -69,7 +72,18 @@ class Character:
             item_bonus = self.armor.level
         else:
             item_bonus = 0
-        return self.base_defence + item_bonus
+        effect_bonus = 0
+        for i in self.effects:
+            effect_bonus += i.defence
+        return self.base_defence + item_bonus + effect_bonus
+
+    def apply_effects(self):
+        for i in self.effects:
+            i.tick(self)
+            if i.duration <= 0:
+                self.effects.remove(i)
+        if self.hp <= 0 and not self.dead:
+            self.die()
 
     def save_history(self, message):
         while len(self.history) >= self.history_length:
@@ -128,6 +142,7 @@ class Character:
         self.quest_progress = 0
         self.set_action(ACTION_DEAD)
         self.dead = True
+        self.effects = []
         self.deaths += 1
         self.need_save = True
         self.wait_counter += RESURRECT_TIMER
@@ -135,6 +150,7 @@ class Character:
             self.save_history("{0} die horrible from the hands of {1}".format(self.name, self.enemy))
         else:
             self.save_history("{0} die horrible".format(self.name))
+        self.set_enemy(None)
 
     def drink_health_potion(self):
         if self.health_potions > 0:
@@ -181,34 +197,63 @@ class Character:
                         if sp.cost > self.mp and self.mp_percent < 50:
                             self.drink_mana_potion()
                         if sp.cost <= self.mp:
-                            hits = max(self.enemy.hp / sp.damage, 1)
-                            if best_hits is None:
-                                best_hits = hits
-                                spell = sp
-                            elif best_hits <= hits:
-                                if sp.cost < spell.cost:
+                            if sp.is_positive:
+                                already_has_buff = False
+                                for cur_effect in self.effects:
+                                    if sp.effect is not None:
+                                        if cur_effect.name == sp.effect.name:
+                                            already_has_buff = True
+                                if not already_has_buff:
+                                    if sp.effect.attack > 0:
+                                        spell = sp
+                                        # cast buff if avaliable
+                                        break
+                                    if sp.effect.defence > 0 and self.defence < self.enemy.attack:
+                                        spell = sp
+                                        # cast buff if avaliable and enemy can hurt us
+                                        break
+                                    if sp.effect.heal_per_turn > 0 and self.hp_percent <= \
+                                            self.ai.max_hp_percent_to_heal:
+                                        spell = sp
+                                        # cast buff if avaliable and enemy can hurt us
+                                        break
+                            else:
+                                hits = max(self.enemy.hp / sp.damage, 1)
+                                if best_hits is None:
                                     best_hits = hits
                                     spell = sp
+                                elif best_hits <= hits:
+                                    if sp.cost < spell.cost:
+                                        best_hits = hits
+                                        spell = sp
                     if spell is not None:
                         made_cast = True
-                        dmg = spell.roll_damage()
-                        self.enemy.hp -= dmg
-                        self.mp -= spell.cost
-                        self.save_history("{0} casted {1} into {2} and inflicted {3} damage".
-                                          format(self.name, spell.name, self.enemy.name, dmg))
+                        if not spell.is_positive:
+                            dmg = spell.roll_damage()
+                            self.enemy.hp -= dmg
+                            self.mp -= spell.cost
+                            self.save_history("{0} casted {1} into {2} and inflicted {3} damage".
+                                              format(self.name, spell.name, self.enemy.name, dmg))
+                        else:
+                            self.mp -= spell.cost
+                            if spell.effect is not None:
+                                spell.effect.apply(self)
+                            self.save_history("During fight with {2}, {0} casted {1} on himself".
+                                              format(self.name, spell.name, self.enemy.name))
             self.hp -= max(self.enemy.attack - self.defence, 1)
             if self.hp <= 0:
                 self.die()
-            if not made_cast:
-                self.enemy.hp -= max(self.attack - self.enemy.defence, 0)
-            if self.enemy.hp <= 0:
-                self.give_exp(self.enemy.exp)
-                self.give_gold(self.enemy.gold)
-                self.monsters_killed += 1
-                self.save_history("{0} killed {1} and received {2} gold and {3} exp".format(self.name, self.enemy.name,
-                                                                                            self.enemy.gold,
-                                                                                            self.enemy.exp))
-                self.set_enemy(None)
+            else:
+                if not made_cast:
+                    self.enemy.hp -= max(self.attack - self.enemy.defence, 0)
+                if self.enemy.hp <= 0:
+                    self.give_exp(self.enemy.exp)
+                    self.give_gold(self.enemy.gold)
+                    self.monsters_killed += 1
+                    self.save_history("{0} killed {1} and received {2} gold and {3} exp".format(self.name, self.enemy.name,
+                                                                                                self.enemy.gold,
+                                                                                                self.enemy.exp))
+                    self.set_enemy(None)
 
     def set_quest(self, quest):
         self.quest = quest
@@ -317,6 +362,15 @@ class Character:
         res += chr(10)
         res += "He have {0} gold, {1} health and {2} mana potions".format(self.gold, self.health_potions,
                                                                           self.mana_potions)
+        if len(self.effects) > 0:
+            res += chr(10)
+            res += chr(10)
+            res += "He's under following effects:\n"
+            for i in self.effects:
+                res += "  " + str(i) + chr(10)
+        else:
+            res += "He has no effects."
+
         res += chr(10)
         res += chr(10)
         if len(self.history) > 0:

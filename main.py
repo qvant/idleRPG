@@ -12,6 +12,7 @@ from lib.character import Character
 from lib.config import Config
 from lib.consts import *
 from lib.dictionary import set_class_list, set_ai_list
+from lib.effect import Effect, EffectType
 from lib.item import Item
 from lib.monster import Monster
 from lib.persist import Persist
@@ -92,8 +93,22 @@ def init():
                                class_name=class_list_j[i]["Name"])
         if "spells" in class_list_j[i].keys():
             for j in class_list_j[i]["spells"]:
+                is_positive = j.get("is_positive")
+                if is_positive is None:
+                    is_positive = False
+                temp_effect = j.get("effect")
+                effect = None
+                if temp_effect is not None:
+                    effect = EffectType(name=j["name"], is_positive = temp_effect["is_positive"],
+                                        attack=temp_effect.get("attack"), defence=temp_effect.get("defence"),
+                                        damage_per_turn=temp_effect.get("damage_per_turn"),
+                                        heal_per_turn=temp_effect.get("heal_per_turn"),
+                                        duration=temp_effect["duration"],
+                                        level_scale_modifier=temp_effect.get("level_scale_modifier"),
+                                        )
                 temp_spell = Spell(name=j["name"], cost=j["cost"], min_damage=j["min_damage"],
-                                   max_damage=j["max_damage"])
+                                   max_damage=j["max_damage"], is_positive=is_positive, effect=effect)
+
                 temp_class.add_spell(temp_spell)
         class_list.append(temp_class)
     set_class_list(class_list)
@@ -107,7 +122,9 @@ def init():
                               retreat_mp_threshold=ai_list_j[i]["retreat_mp_threshold"],
                               mana_potion_gold_percent=ai_list_j[i]["mana_potion_gold_percent"],
                               health_potion_gold_percent=ai_list_j[i]["health_potion_gold_percent"],
-                              max_attack_instead_spell=ai_list_j[i]["max_attack_instead_spell"]))
+                              max_attack_instead_spell=ai_list_j[i]["max_attack_instead_spell"],
+                              max_hp_percent_to_heal=ai_list_j[i]["max_hp_percent_to_heal"],
+                              ))
     set_ai_list(ai_list)
 
     f = "db//quests.json"
@@ -186,6 +203,7 @@ def make_monster(player):
 
 def do_action(player):
     player.wait()
+    player.apply_effects()
     if player.ready:
         if player.dead:
             player.resurrect()

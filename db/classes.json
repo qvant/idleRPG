@@ -11,9 +11,11 @@
       "init_attack": 1,
       "init_defence": 1,
       "spells": [
-        {"name": "ice shard", "cost": 1, "min_damage": 25, "max_damage": 50},
-        {"name": "fireball", "cost": 3, "min_damage": 50, "max_damage": 250},
-        {"name": "lighting", "cost": 2, "min_damage": 1, "max_damage": 500}
+        {"name": "Ice shard", "cost": 1, "min_damage": 25, "max_damage": 50},
+        {"name": "Fireball", "cost": 3, "min_damage": 50, "max_damage": 250},
+        {"name": "Lighting", "cost": 2, "min_damage": 1, "max_damage": 500},
+        {"name": "Blur", "cost": 3, "min_damage": 0, "max_damage": 0, "is_positive": true,
+          "effect": {"is_positive":  true, "defence": 1, "duration": 50, "level_scale_modifier": 1}}
       ]
     },
   "Druid": {"Name":  "Druid",
@@ -25,7 +27,11 @@
         {"name": "Incest swarm", "cost": 1, "min_damage": 5, "max_damage": 250},
         {"name": "Plague", "cost": 3, "min_damage": 50, "max_damage": 1000},
         {"name": "Moon ray", "cost": 2, "min_damage": 30, "max_damage": 300},
-        {"name": "Flame strike", "cost": 5, "min_damage": 80, "max_damage": 1500}
+        {"name": "Flame strike", "cost": 5, "min_damage": 80, "max_damage": 1500},
+        {"name": "Barskin", "cost": 2, "min_damage": 0, "max_damage": 0, "is_positive": true,
+          "effect": {"is_positive":  true, "defence": 16, "duration": 100}},
+        {"name": "Regrowth", "cost": 4, "min_damage": 0, "max_damage": 0, "is_positive": true,
+          "effect": {"is_positive":  true, "heal_per_turn": 15, "duration": 30, "level_scale_modifier":  15}}
       ]
     },
   "Monk": {"Name":  "Monk",
@@ -35,7 +41,9 @@
       "init_defence": 0,
       "spells": [
         {"name": "Fist of God", "cost": 1, "min_damage": 5, "max_damage": 350},
-        {"name": "Ice storm", "cost": 10, "min_damage": 300, "max_damage": 950}
+        {"name": "Ice storm", "cost": 10, "min_damage": 300, "max_damage": 950},
+        {"name": "Stone fists", "cost": 1, "min_damage": 0, "max_damage": 0, "is_positive": true,
+          "effect": {"is_positive":  true, "attack": 3, "duration": 50, "level_scale_modifier": 3}}
       ]
     },
   "Cleric": {"Name":  "Cleric",
@@ -44,8 +52,14 @@
       "init_attack": 2,
       "init_defence": 2,
       "spells": [
-        {"name": "divine wrath", "cost": 3, "min_damage": 50, "max_damage": 200},
-        {"name": "holy fury", "cost": 1, "min_damage": 10, "max_damage": 65}
+        {"name": "Divine wrath", "cost": 3, "min_damage": 50, "max_damage": 200},
+        {"name": "Holy fury", "cost": 1, "min_damage": 10, "max_damage": 65},
+        {"name": "Strength of Heaven", "cost": 1, "min_damage": 0, "max_damage": 0, "is_positive": true,
+          "effect": {"is_positive":  true, "attack": 5, "duration": 50}},
+        {"name": "Armor of faith", "cost": 1, "min_damage": 0, "max_damage": 0, "is_positive": true,
+          "effect": {"is_positive":  true, "defence": 10, "duration": 50}},
+        {"name": "Renew", "cost": 2, "min_damage": 0, "max_damage": 0, "is_positive": true,
+          "effect": {"is_positive":  true, "heal_per_turn": 10, "duration": 50, "level_scale_modifier":  10}}
       ]
     },
   "Thief": {"Name":  "Thief",

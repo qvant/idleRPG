@@ -64,9 +64,9 @@ class Persist:
             player = Character(name, class_by_name[class_name], telegram_id=telegram_id, is_created=False)
             player.level = level
             player.exp = exp
-            player.hp = hp
+            player.hp = max_hp
             player.max_hp = max_hp
-            player.mp = mp
+            player.mp = max_mp
             player.max_mp = max_mp
             player.base_attack = base_attack
             player.base_defence = base_defence

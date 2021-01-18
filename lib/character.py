@@ -181,7 +181,8 @@ class Character:
             if self.ai.retreat_hp_threshold >= self.hp_percent or self.enemy.attack >= self.hp:
                 self.drink_health_potion()
             # check if it is time to run away
-            if self.ai.retreat_hp_threshold >= self.hp_percent or self.enemy.attack >= self.hp:
+            if self.ai.retreat_hp_threshold >= self.hp_percent or self.enemy.attack >= self.hp \
+                    or self.attack <= self.enemy.defence:
                 # success
                 if check_chance(0.5):
                     self.save_history("{0} while having only {2} hp, cowardly run away from {1}".
@@ -323,13 +324,13 @@ class Character:
         if armor.price <= self.gold:
             if self.armor is None or self.armor.level < armor.level:
                 self.gold -= armor.price
-                self.armor = armor
+                armor.equip(self)
                 self.save_history("{0} bought {1} for {2} gold".format(self.name, armor, armor.price))
         weapon = Item(self.level, ITEM_SLOT_WEAPON)
         if weapon.price <= self.gold:
             if self.weapon is None or self.weapon.level < weapon.level:
                 self.gold -= weapon.price
-                self.weapon = weapon
+                weapon.equip(self)
                 self.save_history("{0} bought {1} for {2} gold".format(self.name, weapon, weapon.price))
         self.set_action(ACTION_NONE)
         self.need_save = True
@@ -345,7 +346,7 @@ class Character:
 
     def __str__(self):
         res = self.trans.get_message(M_CHARACTER_HEADER, self.locale)\
-            .format(self.name, self.class_name, self.hp, self.max_mp, self.mp, self.max_mp, self.exp,
+            .format(self.name, self.class_name, self.hp, self.max_hp, self.mp, self.max_mp, self.exp,
                     self.base_attack, self.attack, self.base_defence, self.defence)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_LOCATION, self.locale).\

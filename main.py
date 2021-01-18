@@ -14,6 +14,7 @@ from lib.consts import *
 from lib.dictionary import set_class_list, set_ai_list
 from lib.effect import Effect, EffectType
 from lib.item import Item
+from lib.l18n import L18n, Translator
 from lib.monster import Monster
 from lib.persist import Persist
 from lib.queue import QueueListener
@@ -37,6 +38,7 @@ global app_log
 global game_log
 global bot_queue
 global server
+global trans
 
 
 def init():
@@ -56,6 +58,7 @@ def init():
     global game_log
     global bot_queue
     global server
+    global trans
     player_list = []
 
     parser = argparse.ArgumentParser(description='Idle RPG server.')
@@ -80,6 +83,8 @@ def init():
 
     Character.set_logger(config)
     Character.set_history_length(config)
+    trans = Translator()
+    Character.set_translator(trans)
 
     f = "db//classes.json"
     fp = codecs.open(f, 'r', "utf-8")
@@ -236,6 +241,7 @@ def main():
     global config
     global bot_queue
     global server
+    global trans
     server.set_players(player_list)
     while True:
         turn_start_time = datetime.datetime.now()

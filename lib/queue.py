@@ -274,6 +274,7 @@ class QueueListener:
         else:
             for i in range(len(player_list)):
                 if player_list[i].telegram_id == telegram_id:
+                    player_list[i].set_locale(cmd.get("locale"))
                     char_info = str(player_list[i])
                     if player_list[i].need_save:
                         db.commit()

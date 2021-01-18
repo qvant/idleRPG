@@ -3,6 +3,7 @@ import math
 
 from .consts import *
 from .item import Item
+from .messages import *
 from .utility import check_chance, get_logger
 
 
@@ -36,6 +37,7 @@ class Character:
         self.dead = False
         self.wait_counter = 0
         self.deaths = 0
+        self.locale = 'en'
         self.armor = None
         self.weapon = None
         self.char_class.init_character(character=self)
@@ -50,6 +52,10 @@ class Character:
     @classmethod
     def set_logger(cls, config):
         cls.logger = get_logger(LOG_CHARACTER, config.log_level)
+
+    @classmethod
+    def set_translator(cls, trans):
+        cls.trans = trans
 
     @classmethod
     def set_history_length(cls, config):
@@ -84,6 +90,9 @@ class Character:
                 self.effects.remove(i)
         if self.hp <= 0 and not self.dead:
             self.die()
+
+    def set_locale(self, locale):
+        self.locale = locale
 
     def save_history(self, message):
         while len(self.history) >= self.history_length:
@@ -335,52 +344,52 @@ class Character:
         self.save_history("{0} rested and recovered {1} hp and {2} mp".format(self.name, rec_hp, rec_mp))
 
     def __str__(self):
-        res = "{0} is level {8} {1}. HP: {2}/{3} MP: {4}/{5}, EXP: {6}. Attack {7}({8}), defence {9}({10})."\
+        res = self.trans.get_message(M_CHARACTER_HEADER, self.locale)\
             .format(self.name, self.class_name, self.hp, self.max_mp, self.mp, self.max_mp, self.exp,
                     self.base_attack, self.attack, self.base_defence, self.defence)
         res += chr(10)
-        res += "He is {0} now. He's in {1} miles from town and doing quest \"{2}\" ( {3} percent complete)".\
+        res += self.trans.get_message(M_CHARACTER_LOCATION, self.locale).\
             format(ACTION_NAMES[self.action], self.town_distance, self.quest, self.quest_progress,)
         res += chr(10)
         res += chr(10)
         if self.weapon is not None:
-            res += "He's equipped with {0}. ".format(self.weapon)
+            res += self.trans.get_message(M_CHARACTER_WEAPON, self.locale).format(self.weapon)
         if self.armor is not None:
-            res += "He's wearing {0}. ".format(self.armor)
+            res += self.trans.get_message(M_CHARACTER_ARMOR, self.locale).format(self.armor)
         res += chr(10)
         first_spell = True
         for i in self.spells:
             if first_spell:
                 first_spell = False
-                res += "He know spells:"
+                res += self.trans.get_message(M_CHARACTER_SPELL_LIST, self.locale)
                 res += chr(10)
             res += "  "
             res += str(i)
             res += chr(10)
         if first_spell:
-            res += "He doesn't know any spells."
+            res += self.trans.get_message(M_CHARACTER_HAVE_NO_SPELLS, self.locale)
         res += chr(10)
-        res += "He have {0} gold, {1} health and {2} mana potions".format(self.gold, self.health_potions,
+        res += self.trans.get_message(M_CHARACTER_GOLD_AND_POTIONS, self.locale).format(self.gold, self.health_potions,
                                                                           self.mana_potions)
         if len(self.effects) > 0:
             res += chr(10)
             res += chr(10)
-            res += "He's under following effects:\n"
+            res += self.trans.get_message(M_CHARACTER_EFFECT_LIST, self.locale)
             for i in self.effects:
                 res += "  " + str(i) + chr(10)
         else:
-            res += "He has no effects."
+            res += self.trans.get_message(M_CHARACTER_HAVE_NO_EFFECTS, self.locale)
 
         res += chr(10)
         res += chr(10)
         if len(self.history) > 0:
-            res += "Recent events: "
+            res += self.trans.get_message(M_CHARACTER_LAST_EVENTS, self.locale)
             res += chr(10)
         for i in self.history:
             res += i
             res += chr(10)
         if self.enemy is not None and not self.dead:
-            res += chr(10) + "In fight with: {0}".format(self.enemy)
+            res += chr(10) + self.trans.get_message(M_CHARACTER_ENEMY, self.locale).format(self.enemy)
         if self.dead:
-            res += chr(10) + "Waiting for resurrection, {0} turns left".format(self.wait_counter)
+            res += chr(10) + self.trans.get_message(M_CHARACTER_RESURRECT_TIMER, self.locale).format(self.wait_counter)
         return res

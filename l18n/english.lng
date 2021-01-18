@@ -1,0 +1,14 @@
+{
+  "CHARACTER_HEADER": "{0} is level {8} {1}. HP: {2}/{3} MP: {4}/{5}, EXP: {6}. Attack {7}({8}), defence {9}({10}).",
+  "CHARACTER_LOCATION": "He is {0} now. He's in {1} miles from town and doing quest \"{2}\" ( {3} percent complete)",
+  "CHARACTER_WEAPON": "He's equipped with {0}. ",
+  "CHARACTER_ARMOR": "He's wearing {0}. ",
+  "CHARACTER_SPELL_LIST": "He know spells:",
+  "CHARACTER_HAVE_NO_SPELLS":"He doesn't know any spells.",
+  "CHARACTER_GOLD_AND_POTIONS": "He have {0} gold, {1} health and {2} mana potions",
+  "CHARACTER_EFFECT_LIST": "He's under following effects:\n",
+  "CHARACTER_HAVE_NO_EFFECTS": "He has no effects.",
+  "CHARACTER_LAST_EVENTS": "Recent events: ",
+  "CHARACTER_ENEMY": "In fight with: {0}",
+  "CHARACTER_RESURRECT_TIMER": "Waiting for resurrection, {0} turns left"
+}

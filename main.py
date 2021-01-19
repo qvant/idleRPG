@@ -16,7 +16,7 @@ from lib.effect import Effect, EffectType
 from lib.item import Item
 from lib.l18n import L18n, Translator
 from lib.quest import Quest
-from lib.monster import Monster
+from lib.monster import MonsterType
 from lib.persist import Persist
 from lib.queue import QueueListener
 from lib.server import Server
@@ -144,7 +144,7 @@ def init():
     m_list_j = json.load(fp)
     monster_list = []
     for i in m_list_j:
-        monster_list.append(Monster(name=i, attack=m_list_j[i]["attack"], defence=m_list_j[i]["defence"],
+        monster_list.append(MonsterType(name=i, attack=m_list_j[i]["attack"], defence=m_list_j[i]["defence"],
                                     hp=m_list_j[i]["hp"],
                                     exp=m_list_j[i]["exp"],
                                     level_multiplier=m_list_j[i]["level_multiplier"],
@@ -185,9 +185,12 @@ def make_monster(player):
         i = round(random.random() * len(monster_list) - 1)
         if monster_list[i].level > player.level:
             i = -1
-    monster = copy.deepcopy(monster_list[i])
     if check_chance(MONSTER_AMPLIFY_CHANCE) and player.level > MONSTER_AMPLIFY_MIN_LEVEL:
-        monster.apply_level(round(random.random() * max(player.level - 1, 2)))
+        lvl = (round(random.random() * max(player.level - 1, 2)))
+    else:
+        lvl = 0
+    monster = monster_list[i].create_monster(lvl, player)
+
     return monster
 
 

@@ -124,5 +124,14 @@
   "EFFECT": "effect",
   "LEVEL_SCALED": " effect strength increased on {0} per level",
   "COST_MP": "cost",
-  "MP": "mp"
+  "MP": "mp",
+  "HP": "hp",
+  "goblin": "goblin",
+  "orc": "orc",
+  "imp": "imp",
+  "bear": "bear",
+  "troll": "troll",
+  "daemon": "daemon",
+  "dragon": "dragon",
+  "NAME_IS_ALREADY_TAKEN": "NAME_IS_ALREADY_TAKEN"
 }

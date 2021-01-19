@@ -132,5 +132,8 @@
   "bear": "медведь",
   "troll": "тролль",
   "daemon": "демон",
-  "dragon": "дракон"
+  "dragon": "дракон",
+  "NAME_IS_ALREADY_TAKEN": "Имя занято",
+  "USER_ALREADY_HAS_CHARACTER": "У пользователя {0} уже есть персонаж",
+  "USER_HAS_NO_CHARACTER": "У пользователя {0} нет персонажа"
 }

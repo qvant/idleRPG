@@ -133,5 +133,7 @@
   "troll": "troll",
   "daemon": "daemon",
   "dragon": "dragon",
-  "NAME_IS_ALREADY_TAKEN": "NAME_IS_ALREADY_TAKEN"
+  "NAME_IS_ALREADY_TAKEN": "Name is already taken",
+  "USER_ALREADY_HAS_CHARACTER": "User {0} already have character",
+  "USER_HAS_NO_CHARACTER": "User {0} have no character"
 }

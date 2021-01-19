@@ -10,6 +10,7 @@ from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CL
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
     CMD_SERVER_OK
 from .dictionary import get_class_names, get_class, get_ai
+from .messages import *
 from .utility import get_logger
 
 QUEUE_INIT_BATCH = 10
@@ -31,6 +32,7 @@ class QueueListener:
             self.logger.setLevel(config.log_level)
         else:
             self.logger = get_logger(LOG_QUEUE, config.log_level, is_system=True)
+            self.trans = None
         if not self.enabled:
             return
         self.host = config.queue_host
@@ -60,6 +62,9 @@ class QueueListener:
 
     def renew(self, config):
         self.__init__(config, reload=True)
+
+    def set_translator(self, trans):
+        self.trans = trans
 
     def listen(self, server, player_list, db):
         self.listen_control(server)
@@ -186,6 +191,7 @@ class QueueListener:
         char_name = cmd.get("name")
         char_class = cmd.get("class")
         telegram_id = cmd.get("user_id")
+        locale = cmd.get("locale")
         self.logger.info("Character creation for user {0} started".format(telegram_id))
         char_id = None
         result = ''
@@ -201,11 +207,11 @@ class QueueListener:
         else:
             for i in player_list:
                 if i.name == char_name:
-                    result = 'Name is already taken'
+                    result = self.trans.get_message(M_NAME_IS_ALREADY_TAKEN, locale)
                     code = QUEUE_STATUS_NAME_TAKEN
                     break
                 elif telegram_id is not None and i.telegram_id == telegram_id:
-                    result = 'User ' + str(telegram_id) + " already have character"
+                    result = self.trans.get_message(M_USER_ALREADY_HAS_CHARACTER, locale).format(telegram_id)
                     code = QUEUE_STATUS_CHARACTER_EXISTS
                     break
         if len(result) == 0:
@@ -266,6 +272,7 @@ class QueueListener:
 
     def get_character_status_handler(self, cmd, db, player_list, delivery_tag):
         telegram_id = cmd.get("user_id")
+        locale = cmd.get("locale")
         self.logger.info("try to find character with telegram id {0}".format(telegram_id))
         char_info = ''
         if telegram_id is None:
@@ -282,7 +289,7 @@ class QueueListener:
                     result = "Success"
                     break
             if len(char_info) == 0:
-                char_info = "User {0} have no character".format(telegram_id)
+                char_info = self.trans.get_message(M_USER_HAS_NO_CHARACTER, locale).format(telegram_id)
                 result = "Success"
                 code = QUEUE_STATUS_OK
         resp = {"code": code, "message": result, "user_id": telegram_id, "char_info": char_info,

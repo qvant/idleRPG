@@ -231,6 +231,7 @@ def main():
     global server
     global trans
     server.set_players(player_list)
+    bot_queue.set_translator(trans)
     while True:
         turn_start_time = datetime.datetime.now()
         turn_end_time_r = turn_start_time + datetime.timedelta(seconds=config.turn_time)

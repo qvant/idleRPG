@@ -366,13 +366,13 @@ class Character:
                 res += self.trans.get_message(M_CHARACTER_SPELL_LIST, self.locale)
                 res += chr(10)
             res += "  "
-            res += str(i)
+            res += i.translate(self.trans, self.locale)
             res += chr(10)
         if first_spell:
             res += self.trans.get_message(M_CHARACTER_HAVE_NO_SPELLS, self.locale)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_GOLD_AND_POTIONS, self.locale).format(self.gold, self.health_potions,
-                                                                          self.mana_potions)
+                                                                                        self.mana_potions)
         if len(self.effects) > 0:
             res += chr(10)
             res += chr(10)

@@ -1,7 +1,8 @@
-
+from .messages import *
 
 class Effect:
-    def __init__(self, name, is_positive, attack, defence, init_duration, damage_per_turn, heal_per_turn, effect_type):
+    def __init__(self, name, is_positive, attack, defence, init_duration, damage_per_turn, heal_per_turn, effect_type,
+                 owner):
         self.name = name
         self.type = effect_type
         self.is_positive = is_positive
@@ -11,6 +12,7 @@ class Effect:
         self.duration = init_duration
         self.damage_per_turn = damage_per_turn
         self.heal_per_turn = heal_per_turn
+        self.owner = owner
 
     def tick(self, target):
         target.hp -= self.damage_per_turn
@@ -18,16 +20,18 @@ class Effect:
         self.duration -= 1
 
     def __str__(self):
-        res = "{0}:".format(self.name)
+        res = "{0}:".format(self.owner.trans.get_message(self.name, self.owner.locale))
         if self.attack != 0:
-            res += " attack {0}".format(self.attack)
+            res += " {1} {0}".format(self.attack, self.owner.trans.get_message(M_ATTACK, self.owner.locale))
         if self.defence != 0:
-            res += " defence {0}".format(self.defence)
+            res += " {1} {0}".format(self.defence, self.owner.trans.get_message(M_DEFENCE, self.owner.locale))
         if self.damage_per_turn != 0:
-            res += " damage per turn {0}".format(self.damage_per_turn)
+            res += " {1} {0}".format(self.damage_per_turn, self.owner.trans.get_message(M_DAMAGE_PER_TURN, self.owner.locale))
         if self.heal_per_turn != 0:
-            res += " heal per turn {0}".format(self.heal_per_turn)
-        res += " duration  {0} / {1}".format(self.duration, self.init_duration)
+            res += " {1} {0}".format(self.heal_per_turn,
+                                               self.owner.trans.get_message(M_HEAL_PER_TURN, self.owner.locale))
+        res += " {2}  {0} / {1}".format(self.duration, self.init_duration,
+                                             self.owner.trans.get_message(M_DURATION, self.owner.locale))
         return res
 
 
@@ -63,8 +67,23 @@ class EffectType:
                         self.defence * (1 + self.level_scale_modifier * (target.level - 1)), self.duration,
                         self.damage_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
                         self.heal_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
-                        self)
+                        self, target)
         target.effects.append(effect)
+
+    def translate(self, trans, code):
+        res = ""
+        if self.attack != 0:
+            res += " {1} {0}".format(self.attack,  trans.get_message(M_ATTACK, code))
+        if self.defence != 0:
+            res += " {1} {0}".format(self.defence,  trans.get_message(M_DEFENCE, code))
+        if self.damage_per_turn != 0:
+            res += " {1} {0}".format(self.damage_per_turn,  trans.get_message(M_DAMAGE_PER_TURN, code))
+        if self.heal_per_turn != 0:
+            res += " {1} {0}".format(self.heal_per_turn,  trans.get_message(M_HEAL_PER_TURN, code))
+        if self.level_scale_modifier != 0:
+            res += trans.get_message(M_MIN_DAMAGE, code).format(self.level_scale_modifier)
+        res += " {1}  {0}".format(self.duration, trans.get_message(M_DURATION, code))
+        return res
 
     def __str__(self):
         res = ""

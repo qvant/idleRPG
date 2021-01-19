@@ -350,7 +350,8 @@ class Character:
                     self.base_attack, self.attack, self.base_defence, self.defence)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_LOCATION, self.locale).\
-            format(ACTION_NAMES[self.action], self.town_distance, self.quest, self.quest_progress,)
+            format(self.trans.get_message(ACTION_NAMES[self.action], self.locale), self.town_distance,
+                   self.quest, self.quest_progress,)
         res += chr(10)
         res += chr(10)
         if self.weapon is not None:

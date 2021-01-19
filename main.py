@@ -15,6 +15,7 @@ from lib.dictionary import set_class_list, set_ai_list
 from lib.effect import Effect, EffectType
 from lib.item import Item
 from lib.l18n import L18n, Translator
+from lib.quest import Quest
 from lib.monster import Monster
 from lib.persist import Persist
 from lib.queue import QueueListener
@@ -25,10 +26,6 @@ from lib.utility import check_chance, get_logger
 global player_list
 global class_list
 global monster_list
-global quest_verbs
-global quest_numbers
-global quest_adjective
-global quest_noun
 global db
 global config
 global start_mode
@@ -45,10 +42,6 @@ def init():
     global player_list
     global monster_list
     global class_list
-    global quest_verbs
-    global quest_numbers
-    global quest_adjective
-    global quest_noun
     global db
     global config
     global start_mode
@@ -140,6 +133,11 @@ def init():
     quest_adjective = q_list_j["adjective"]
     quest_noun = q_list_j["noun"]
 
+    Quest.set_adjectives(quest_adjective)
+    Quest.set_nouns(quest_noun)
+    Quest.set_numbers(quest_numbers)
+    Quest.set_verbs(quest_verbs)
+
     f = "db//monsters.json"
     fp = codecs.open(f, 'r', "utf-8")
     m_list_j = json.load(fp)
@@ -168,20 +166,6 @@ def init():
         player_list = db.load_all_characters(class_list, ai_list[0])
 
 
-def make_quest():
-    global quest_verbs
-    global quest_numbers
-    global quest_adjective
-    global quest_noun
-    global server
-    ind_v = round(random.random() * len(quest_verbs)) - 1
-    ind_n = round(random.random() * len(quest_numbers)) - 1
-    ind_a = round(random.random() * len(quest_adjective)) - 1
-    ind_noun = round(random.random() * len(quest_noun)) - 1
-    return "{0} {1} {2} {3}".format(quest_verbs[ind_v], quest_numbers[ind_n], quest_adjective[ind_a],
-                                    quest_noun[ind_noun])
-
-
 def chose_action(player):
     if player.action == ACTION_NONE:
         if player.hp_percent <= player.ai.retreat_hp_threshold:
@@ -191,7 +175,7 @@ def chose_action(player):
         else:
             player.set_action(ACTION_QUEST)
             if player.quest is None:
-                player.set_quest(make_quest())
+                Quest(player)
 
 
 def make_monster(player):

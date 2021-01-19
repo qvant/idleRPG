@@ -129,6 +129,7 @@ def init():
     fp = codecs.open(f, 'r', "utf-8")
     q_list_j = json.load(fp)
     quest_verbs = q_list_j["verb"]
+    # TODO: Заменить константой или настройкой
     quest_numbers = q_list_j["numbers"]
     quest_adjective = q_list_j["adjective"]
     quest_noun = q_list_j["noun"]

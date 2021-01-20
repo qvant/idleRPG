@@ -135,5 +135,15 @@
   "dragon": "дракон",
   "NAME_IS_ALREADY_TAKEN": "Имя занято",
   "USER_ALREADY_HAS_CHARACTER": "У пользователя {0} уже есть персонаж",
-  "USER_HAS_NO_CHARACTER": "У пользователя {0} нет персонажа"
+  "USER_HAS_NO_CHARACTER": "У пользователя {0} нет персонажа",
+  "CHARACTER_WAS_CREATED": "{} {} создан успешно",
+  "CHARACTER_WAS_DELETED": "{} {} (уровня {}) удален",
+  "Fighter": "Воин",
+  "Wizard": "Маг",
+  "Druid": "Друид",
+  "Monk": "Монах",
+  "Cleric": "Священник",
+  "Thief": "Вор",
+  "Bulwark": "Защитник",
+  "Barbarian": "Варвар"
 }

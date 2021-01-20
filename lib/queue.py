@@ -226,8 +226,8 @@ class QueueListener:
             else:
                 player_list.append(new_character)
                 char_id = new_character.id
-                result = "{} {} was created".format(new_character.class_name.capitalize(),
-                                                    new_character.name)
+                result = self.trans.get_message(M_CHARACTER_WAS_CREATED, locale).\
+                    format(self.trans.get_message(new_character.class_name, locale).capitalize(), new_character.name)
                 db.save_character(new_character)
                 db.commit()
                 code = QUEUE_STATUS_OK
@@ -246,6 +246,7 @@ class QueueListener:
 
     def delete_character_handler(self, cmd, db, player_list, delivery_tag):
         telegram_id = cmd.get("user_id")
+        locale = cmd.get("locale")
         self.logger.info("Character deletion for user {0} started".format(telegram_id))
         code = None
         result = ''
@@ -255,8 +256,9 @@ class QueueListener:
         else:
             for i in range(len(player_list)):
                 if player_list[i].telegram_id == telegram_id:
-                    result = "{} {} (level {}) was deleted".format(player_list[i].class_name.capitalize(),
-                                                                   player_list[i].name, player_list[i].level)
+                    result = self.trans.get_message(M_CHARACTER_WAS_DELETED, locale).\
+                        format(self.trans.get_message(player_list[i].class_name, locale).capitalize(),
+                               player_list[i].name, player_list[i].level)
                     db.delete_character(player_list[i])
                     db.commit()
                     del player_list[i]
@@ -264,7 +266,7 @@ class QueueListener:
                     break
         if code is None:
             code = QUEUE_STATUS_CHARACTER_NOT_EXISTS
-            result = "Character not found for user {0}".format(telegram_id)
+            result = self.trans.get_message(M_USER_HAS_NO_CHARACTER, locale).format(telegram_id)
         resp = {"code": code, "message": result, "user_id": telegram_id}
         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,

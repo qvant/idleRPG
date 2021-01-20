@@ -135,5 +135,15 @@
   "dragon": "dragon",
   "NAME_IS_ALREADY_TAKEN": "Name is already taken",
   "USER_ALREADY_HAS_CHARACTER": "User {0} already have character",
-  "USER_HAS_NO_CHARACTER": "User {0} have no character"
+  "USER_HAS_NO_CHARACTER": "User {0} have no character",
+  "CHARACTER_WAS_CREATED": "{} {} was created",
+  "CHARACTER_WAS_DELETED": "{} {} (level {}) was deleted",
+  "Fighter": "Fighter",
+  "Wizard": "Wizard",
+  "Druid": "Druid",
+  "Monk": "Monk",
+  "Cleric": "Cleric",
+  "Thief": "Thief",
+  "Bulwark": "Bulwark",
+  "Barbarian": "Barbarian"
 }

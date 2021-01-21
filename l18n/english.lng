@@ -145,5 +145,22 @@
   "Cleric": "Cleric",
   "Thief": "Thief",
   "Bulwark": "Bulwark",
-  "Barbarian": "Barbarian"
+  "Barbarian": "Barbarian",
+  "RESURRECTED": "{0} raised from dead",
+  "KILLED_BY_ENEMY": "{0} die horrible from the hands of {1}",
+  "DIED": "{0} die horrible",
+  "DRINK_HEALTH_POTION": "{0}, while having only {1} hp, feel himself in danger and drink health potion",
+  "DRINK_MANA_POTION": "{0}, while having only {1} mp, drink mana potion",
+  "RUN_AWAY": "{0} while having only {2} hp, cowardly run away from {1}",
+  "RUN_AWAY_FAILED": "{0}, while having only {2} hp, tried to run from {1}, but failed",
+  "CASTED_SPELL": "{0} casted {1} into {2} and inflicted {3} damage",
+  "CASTED_SPELL_ON_HIMSELF": "During fight with {2}, {0} casted {1} on himself",
+  "FOUND_LOOT": "{0} killed {1} and received {2} gold and {3} exp",
+  "ACCEPTED_QUEST": "{0} accepted quest \"{1}\"",
+  "COMPLETED_QUEST": "{0} completed quest \"{1}\"",
+  "REACHED_LEVEL": "{0} reached level {1}",
+  "BOUGHT_HEALTH_POTIONS": "{0} bought {1} health potions",
+  "BOUGHT_MANA_POTIONS": "{0} bought {1} mana potions",
+  "BOUGHT_EQUIPMENT": "{0} bought {1} for {2} gold",
+  "RESTED": "{0} rested and recovered {1} hp and {2} mp"
 }

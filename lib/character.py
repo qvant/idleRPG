@@ -2,6 +2,7 @@ import copy
 import math
 
 from .consts import *
+from .event import *
 from .item import Item
 from .messages import *
 from .utility import check_chance, get_logger
@@ -94,11 +95,11 @@ class Character:
     def set_locale(self, locale):
         self.locale = locale
 
-    def save_history(self, message):
+    def save_history(self, event):
         while len(self.history) >= self.history_length:
             del self.history[0]
-        self.history.append(message)
-        self.logger.info(message)
+        self.history.append(event)
+        self.logger.info(str(event))
 
     def set_action(self, action):
         if action not in ACTIONS:
@@ -142,7 +143,7 @@ class Character:
         self.enemy = None
         self.dead = False
         self.need_save = True
-        self.save_history("{0} raised from dead".format(self.name))
+        self.save_history(Event(player=self, event_type=EVENT_TYPE_RESURRECTED))
 
     def die(self):
         self.hp = 0
@@ -156,22 +157,21 @@ class Character:
         self.need_save = True
         self.wait_counter += RESURRECT_TIMER
         if self.enemy is not None:
-            self.save_history("{0} die horrible from the hands of {1}".format(self.name, self.enemy))
+            self.save_history(Event(player=self, event_type=EVENT_TYPE_KILLED, enemy=self.enemy))
         else:
-            self.save_history("{0} die horrible".format(self.name))
+            self.save_history(Event(player=self, event_type=EVENT_TYPE_DIED))
         self.set_enemy(None)
 
     def drink_health_potion(self):
         if self.health_potions > 0:
-            self.save_history("{0}, while having only {1} hp, feel himself in danger and drink health potion".
-                              format(self.name, self.hp))
+            self.save_history(Event(player=self, event_type=EVENT_TYPE_DRINK_HEALTH_POTION, hp=self.hp))
             self.health_potions -= 1
             self.hp = self.max_hp
             self.need_save = True
 
     def drink_mana_potion(self):
         if self.mana_potions > 0:
-            self.save_history("{0}, while having only {1} mp, drink mana potion".format(self.name, self.mp))
+            self.save_history(Event(player=self, event_type=EVENT_TYPE_DRINK_MANA_POTION, mp=self.mp))
             self.mana_potions -= 1
             self.mp = self.max_mp
             self.need_save = True
@@ -185,16 +185,14 @@ class Character:
                     or self.attack <= self.enemy.defence:
                 # success
                 if check_chance(0.5):
-                    self.save_history("{0} while having only {2} hp, cowardly run away from {1}".
-                                      format(self.name, self.enemy.name, self.hp))
+                    self.save_history(Event(player=self, event_type=EVENT_TYPE_RUN_AWAY, hp=self.hp, enemy=self.enemy))
                     self.give_exp(round(self.enemy.exp * EXP_FOR_RETREAT_RATIO))
                     self.set_action(ACTION_RETREAT)
                     self.enemy = None
                 else:
                     # no penalty for fail
                     pass
-                    self.save_history("{0}, while having only {2} hp, tried to run from {1}, but failed".
-                                      format(self.name, self.enemy.name, self.hp))
+                    self.save_history(Event(player=self, event_type=EVENT_TYPE_RUN_AWAY_FAILED, hp=self.hp, enemy=self.enemy))
         if self.enemy is not None:
             # decise if need to cast
             made_cast = False
@@ -242,14 +240,14 @@ class Character:
                             dmg = spell.roll_damage()
                             self.enemy.hp -= dmg
                             self.mp -= spell.cost
-                            self.save_history("{0} casted {1} into {2} and inflicted {3} damage".
-                                              format(self.name, spell.name, self.enemy.name, dmg))
+                            self.save_history(
+                                Event(player=self, event_type=EVENT_TYPE_CASTED_SPELL, enemy=self.enemy, spell=spell, damage=dmg))
                         else:
                             self.mp -= spell.cost
                             if spell.effect is not None:
                                 spell.effect.apply(self)
-                            self.save_history("During fight with {2}, {0} casted {1} on himself".
-                                              format(self.name, spell.name, self.enemy.name))
+                            self.save_history(
+                                Event(player=self, event_type=EVENT_TYPE_CASTED_SPELL_ON_HIMSELF, spell=spell, enemy=self.enemy))
             self.hp -= max(self.enemy.attack - self.defence, 1)
             if self.hp <= 0:
                 self.die()
@@ -260,14 +258,15 @@ class Character:
                     self.give_exp(self.enemy.exp)
                     self.give_gold(self.enemy.gold)
                     self.monsters_killed += 1
-                    self.save_history("{0} killed {1} and received {2} gold and {3} exp".format(self.name, self.enemy.name,
-                                                                                                self.enemy.gold,
-                                                                                                self.enemy.exp))
+                    self.save_history(
+                        Event(player=self, event_type=EVENT_TYPE_FOUND_LOOT, enemy=self.enemy, gold=self.enemy.gold,
+                              exp=self.enemy.exp))
                     self.set_enemy(None)
 
     def set_quest(self, quest):
         self.quest = quest
-        self.save_history("{0} accepted quest \"{1}\"".format(self.name, self.quest))
+        self.save_history(
+            Event(player=self, event_type=EVENT_TYPE_ACCEPTED_QUEST, quest=self.quest))
 
     def move(self, distance=1):
         self.town_distance += distance
@@ -282,7 +281,8 @@ class Character:
             self.quest_progress = 0
             self.give_exp(self.level * 300)
             self.give_gold(self.level * 100)
-            self.save_history("{0} completed quest \"{1}\"".format(self.name, self.quest))
+            self.save_history(
+                Event(player=self, event_type=EVENT_TYPE_COMPLETED_QUEST, quest=self.quest))
             self.set_quest(None)
             self.set_action(ACTION_NONE)
             self.quests_complete += 1
@@ -302,7 +302,8 @@ class Character:
         self.rest()
         self.exp = 0
         self.level += 1
-        self.save_history("{0} reached level {1}".format(self.name, self.level))
+        self.save_history(
+            Event(player=self, event_type=EVENT_TYPE_REACHED_LEVEL, level=self.level))
 
     def do_shopping(self):
         gold_hp_potion = math.trunc(self.gold / 100 * self.ai.health_potion_gold_percent)
@@ -314,24 +315,28 @@ class Character:
         if potion_number > 0:
             self.gold -= HEALTH_POTION_PRICE * potion_number
             self.health_potions += potion_number
-            self.save_history("{0} bought {1} health potions".format(self.name, potion_number))
+            self.save_history(
+                Event(player=self, event_type=EVENT_TYPE_BOUGHT_HEALTH_POTIONS, potion_number=potion_number))
         potion_number = min(math.trunc(gold_mp_potion / MANA_POTION_PRICE), self.level * 2 - self.mana_potions)
         if potion_number > 0:
             self.gold -= MANA_POTION_PRICE * potion_number
             self.mana_potions += potion_number
-            self.save_history("{0} bought {1} mana potions".format(self.name, potion_number))
+            self.save_history(
+                Event(player=self, event_type=EVENT_TYPE_BOUGHT_MANA_POTIONS, potion_number=potion_number))
         armor = Item(self.level, ITEM_SLOT_ARMOR)
         if armor.price <= self.gold:
             if self.armor is None or self.armor.level < armor.level:
                 self.gold -= armor.price
                 armor.equip(self)
-                self.save_history("{0} bought {1} for {2} gold".format(self.name, armor, armor.price))
+                self.save_history(
+                    Event(player=self, event_type=EVENT_TYPE_BOUGHT_EQUIPMENT, gold=armor.price, item=armor))
         weapon = Item(self.level, ITEM_SLOT_WEAPON)
         if weapon.price <= self.gold:
             if self.weapon is None or self.weapon.level < weapon.level:
                 self.gold -= weapon.price
                 weapon.equip(self)
-                self.save_history("{0} bought {1} for {2} gold".format(self.name, weapon, weapon.price))
+                self.save_history(
+                    Event(player=self, event_type=EVENT_TYPE_BOUGHT_EQUIPMENT, gold=weapon.price, item=weapon))
         self.set_action(ACTION_NONE)
         self.need_save = True
 
@@ -342,7 +347,8 @@ class Character:
         self.mp = self.max_mp
         self.set_action(ACTION_NONE)
         self.need_save = True
-        self.save_history("{0} rested and recovered {1} hp and {2} mp".format(self.name, rec_hp, rec_mp))
+        self.save_history(
+            Event(player=self, event_type=EVENT_TYPE_RESTED, hp=rec_hp, mp=rec_mp))
 
     def __str__(self):
         res = self.trans.get_message(M_CHARACTER_HEADER, self.locale)\
@@ -388,7 +394,7 @@ class Character:
             res += self.trans.get_message(M_CHARACTER_LAST_EVENTS, self.locale)
             res += chr(10)
         for i in self.history:
-            res += i
+            res += str(i)
             res += chr(10)
         if self.enemy is not None and not self.dead:
             res += chr(10) + self.trans.get_message(M_CHARACTER_ENEMY, self.locale).format(self.enemy)

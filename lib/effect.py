@@ -75,14 +75,21 @@ class EffectType:
         if self.attack != 0:
             res += " {1} {0}".format(self.attack,  trans.get_message(M_ATTACK, code))
         if self.defence != 0:
+            if len(res) > 0:
+                res += ", "
             res += " {1} {0}".format(self.defence,  trans.get_message(M_DEFENCE, code))
         if self.damage_per_turn != 0:
+            if len(res) > 0:
+                res += ", "
             res += " {1} {0}".format(self.damage_per_turn,  trans.get_message(M_DAMAGE_PER_TURN, code))
         if self.heal_per_turn != 0:
+            if len(res) > 0:
+                res += ", "
             res += " {1} {0}".format(self.heal_per_turn,  trans.get_message(M_HEAL_PER_TURN, code))
         if self.level_scale_modifier != 0:
-            res += trans.get_message(M_MIN_DAMAGE, code).format(self.level_scale_modifier)
-        res += " {1}  {0}".format(self.duration, trans.get_message(M_DURATION, code))
+            res += ", "
+            res += trans.get_message(M_LEVEL_SCALED, code).format(self.level_scale_modifier)
+        res += ", {1}  {0}".format(self.duration, trans.get_message(M_DURATION, code))
         return res
 
     def __str__(self):

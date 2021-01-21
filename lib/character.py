@@ -1,4 +1,3 @@
-import copy
 import math
 
 from .consts import *
@@ -110,7 +109,7 @@ class Character:
         self.ai = ai
 
     def set_enemy(self, enemy):
-        self.enemy = copy.deepcopy(enemy)
+        self.enemy = enemy
 
     def set_id(self, db_id):
         if self.id is None:

@@ -351,7 +351,7 @@ class Character:
 
     def __str__(self):
         res = self.trans.get_message(M_CHARACTER_HEADER, self.locale)\
-            .format(self.name, self.class_name, self.hp, self.max_hp, self.mp, self.max_mp, self.exp,
+            .format(self.name, self.trans.get_message(self.class_name, self.locale), self.hp, self.max_hp, self.mp, self.max_mp, self.exp,
                     self.base_attack, self.attack, self.base_defence, self.defence)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_LOCATION, self.locale).\

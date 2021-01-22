@@ -9,7 +9,7 @@ from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CL
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
     CMD_SERVER_OK
-from .dictionary import get_class_names, get_class, get_ai
+from .dictionary import get_class_list, get_class_names, get_class, get_ai
 from .messages import *
 from .utility import get_logger
 
@@ -76,7 +76,7 @@ class QueueListener:
         try:
             msg_proceed = 0
             start_time = datetime.datetime.now()
-            class_list = get_class_names()
+            class_list = get_class_list()
             msg_cnt = 0
             for method_frame, properties, body in self.channel.consume(QUEUE_NAME_INIT, inactivity_timeout=0.01):
                 # if not timeout

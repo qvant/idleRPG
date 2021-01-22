@@ -109,7 +109,7 @@ def init():
 
                 temp_class.add_spell(temp_spell)
         class_list.append(temp_class)
-    set_class_list(class_list)
+    set_class_list(class_list, trans.locales)
 
     f = "db//ai.json"
     fp = codecs.open(f, 'r', "utf-8")

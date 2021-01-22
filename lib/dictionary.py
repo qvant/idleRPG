@@ -28,8 +28,8 @@ def get_class_names():
 
 
 def get_class_list():
-    global class_list
-    return class_list
+    global class_list_text
+    return class_list_text
 
 
 def get_class(name):

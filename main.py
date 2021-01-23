@@ -1,6 +1,5 @@
 import argparse
 import codecs
-import copy
 import datetime
 import json
 import random
@@ -12,8 +11,11 @@ from lib.character import Character
 from lib.config import Config
 from lib.consts import *
 from lib.dictionary import set_class_list, set_ai_list
+from lib.effect import EffectType
 from lib.item import Item
-from lib.monster import Monster
+from lib.l18n import Translator
+from lib.quest import Quest
+from lib.monster import MonsterType
 from lib.persist import Persist
 from lib.queue import QueueListener
 from lib.server import Server
@@ -23,10 +25,6 @@ from lib.utility import check_chance, get_logger
 global player_list
 global class_list
 global monster_list
-global quest_verbs
-global quest_numbers
-global quest_adjective
-global quest_noun
 global db
 global config
 global start_mode
@@ -36,16 +34,13 @@ global app_log
 global game_log
 global bot_queue
 global server
+global trans
 
 
 def init():
     global player_list
     global monster_list
     global class_list
-    global quest_verbs
-    global quest_numbers
-    global quest_adjective
-    global quest_noun
     global db
     global config
     global start_mode
@@ -55,6 +50,7 @@ def init():
     global game_log
     global bot_queue
     global server
+    global trans
     player_list = []
 
     parser = argparse.ArgumentParser(description='Idle RPG server.')
@@ -79,6 +75,8 @@ def init():
 
     Character.set_logger(config)
     Character.set_history_length(config)
+    trans = Translator()
+    Character.set_translator(trans)
 
     f = "db//classes.json"
     fp = codecs.open(f, 'r', "utf-8")
@@ -92,11 +90,25 @@ def init():
                                class_name=class_list_j[i]["Name"])
         if "spells" in class_list_j[i].keys():
             for j in class_list_j[i]["spells"]:
+                is_positive = j.get("is_positive")
+                if is_positive is None:
+                    is_positive = False
+                temp_effect = j.get("effect")
+                effect = None
+                if temp_effect is not None:
+                    effect = EffectType(name=j["name"], is_positive=temp_effect["is_positive"],
+                                        attack=temp_effect.get("attack"), defence=temp_effect.get("defence"),
+                                        damage_per_turn=temp_effect.get("damage_per_turn"),
+                                        heal_per_turn=temp_effect.get("heal_per_turn"),
+                                        duration=temp_effect["duration"],
+                                        level_scale_modifier=temp_effect.get("level_scale_modifier"),
+                                        )
                 temp_spell = Spell(name=j["name"], cost=j["cost"], min_damage=j["min_damage"],
-                                   max_damage=j["max_damage"])
+                                   max_damage=j["max_damage"], is_positive=is_positive, effect=effect)
+
                 temp_class.add_spell(temp_spell)
         class_list.append(temp_class)
-    set_class_list(class_list)
+    set_class_list(class_list, trans.locales)
 
     f = "db//ai.json"
     fp = codecs.open(f, 'r', "utf-8")
@@ -107,28 +119,36 @@ def init():
                               retreat_mp_threshold=ai_list_j[i]["retreat_mp_threshold"],
                               mana_potion_gold_percent=ai_list_j[i]["mana_potion_gold_percent"],
                               health_potion_gold_percent=ai_list_j[i]["health_potion_gold_percent"],
-                              max_attack_instead_spell=ai_list_j[i]["max_attack_instead_spell"]))
+                              max_attack_instead_spell=ai_list_j[i]["max_attack_instead_spell"],
+                              max_hp_percent_to_heal=ai_list_j[i]["max_hp_percent_to_heal"],
+                              ))
     set_ai_list(ai_list)
 
     f = "db//quests.json"
     fp = codecs.open(f, 'r', "utf-8")
     q_list_j = json.load(fp)
     quest_verbs = q_list_j["verb"]
+    # TODO: Заменить константой или настройкой
     quest_numbers = q_list_j["numbers"]
     quest_adjective = q_list_j["adjective"]
     quest_noun = q_list_j["noun"]
+
+    Quest.set_adjectives(quest_adjective)
+    Quest.set_nouns(quest_noun)
+    Quest.set_numbers(quest_numbers)
+    Quest.set_verbs(quest_verbs)
 
     f = "db//monsters.json"
     fp = codecs.open(f, 'r', "utf-8")
     m_list_j = json.load(fp)
     monster_list = []
     for i in m_list_j:
-        monster_list.append(Monster(name=i, attack=m_list_j[i]["attack"], defence=m_list_j[i]["defence"],
-                                    hp=m_list_j[i]["hp"],
-                                    exp=m_list_j[i]["exp"],
-                                    level_multiplier=m_list_j[i]["level_multiplier"],
-                                    level=m_list_j[i]["level"],
-                                    gold=m_list_j[i]["gold"],))
+        monster_list.append(MonsterType(name=i, attack=m_list_j[i]["attack"], defence=m_list_j[i]["defence"],
+                                        hp=m_list_j[i]["hp"],
+                                        exp=m_list_j[i]["exp"],
+                                        level_multiplier=m_list_j[i]["level_multiplier"],
+                                        level=m_list_j[i]["level"],
+                                        gold=m_list_j[i]["gold"], ))
 
     f = "db//weapons.json"
     fp = codecs.open(f, 'r', "utf-8")
@@ -146,20 +166,6 @@ def init():
         player_list = db.load_all_characters(class_list, ai_list[0])
 
 
-def make_quest():
-    global quest_verbs
-    global quest_numbers
-    global quest_adjective
-    global quest_noun
-    global server
-    ind_v = round(random.random() * len(quest_verbs)) - 1
-    ind_n = round(random.random() * len(quest_numbers)) - 1
-    ind_a = round(random.random() * len(quest_adjective)) - 1
-    ind_noun = round(random.random() * len(quest_noun)) - 1
-    return "{0} {1} {2} {3}".format(quest_verbs[ind_v], quest_numbers[ind_n], quest_adjective[ind_a],
-                                    quest_noun[ind_noun])
-
-
 def chose_action(player):
     if player.action == ACTION_NONE:
         if player.hp_percent <= player.ai.retreat_hp_threshold:
@@ -168,7 +174,8 @@ def chose_action(player):
             player.set_action(ACTION_RETREAT)
         else:
             player.set_action(ACTION_QUEST)
-            player.set_quest(make_quest())
+            if player.quest is None:
+                Quest(player)
 
 
 def make_monster(player):
@@ -177,14 +184,18 @@ def make_monster(player):
         i = round(random.random() * len(monster_list) - 1)
         if monster_list[i].level > player.level:
             i = -1
-    monster = copy.deepcopy(monster_list[i])
     if check_chance(MONSTER_AMPLIFY_CHANCE) and player.level > MONSTER_AMPLIFY_MIN_LEVEL:
-        monster.apply_level(round(random.random() * max(player.level - 1, 2)))
+        lvl = (round(random.random() * max(player.level - 1, 2)))
+    else:
+        lvl = 0
+    monster = monster_list[i].create_monster(lvl, player)
+
     return monster
 
 
 def do_action(player):
     player.wait()
+    player.apply_effects()
     if player.ready:
         if player.dead:
             player.resurrect()
@@ -217,7 +228,9 @@ def main():
     global config
     global bot_queue
     global server
+    global trans
     server.set_players(player_list)
+    bot_queue.set_translator(trans)
     while True:
         turn_start_time = datetime.datetime.now()
         turn_end_time_r = turn_start_time + datetime.timedelta(seconds=config.turn_time)
@@ -276,6 +289,5 @@ def main():
 
 
 if __name__ == '__main__':
-
     init()
     main()

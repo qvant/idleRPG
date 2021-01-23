@@ -9,18 +9,30 @@ class Item:
     armor_list = {}
 
     def __init__(self, level, slot):
-        name = ''
         if slot == ITEM_SLOT_WEAPON:
-            name = get_random_array_element(Item.weapon_list["affixes"]) + " "
-            name += get_random_array_element(Item.weapon_list["types"]) + " "
-            name += get_random_array_element(Item.weapon_list["suffixes"])
+            self.affix = get_random_array_element(Item.weapon_list["affixes"])
+            self.type = get_random_array_element(Item.weapon_list["types"])
+            self.suffix = get_random_array_element(Item.weapon_list["suffixes"])
         if slot == ITEM_SLOT_ARMOR:
-            name = get_random_array_element(Item.armor_list["affixes"]) + " "
-            name += get_random_array_element(Item.armor_list["types"]) + " "
-            name += get_random_array_element(Item.armor_list["suffixes"])
-        self.name = name
+            self.affix = get_random_array_element(Item.armor_list["affixes"])
+            self.type = get_random_array_element(Item.armor_list["types"])
+            self.suffix = get_random_array_element(Item.armor_list["suffixes"])
         self.level = round(random.random() * level + 1)
         self.slot = slot
+        self.owner = None
+
+    @property
+    def name(self):
+        if self.owner is None:
+            return self._name
+        else:
+            return "{0} {1} {2}".format(self.owner.trans.get_message(self.affix, self.owner.locale),
+                                        self.owner.trans.get_message(self.type, self.owner.locale),
+                                        self.owner.trans.get_message(self.suffix, self.owner.locale))
+
+    @property
+    def _name(self):
+        return "{0} {1} {2}".format(self.affix, self.type, self.suffix)
 
     @property
     def price(self):
@@ -39,6 +51,58 @@ class Item:
         if self.slot == ITEM_SLOT_ARMOR:
             res = self.level
         return res
+
+    # recover parts of name from result string
+    def set_name(self, name):
+        parts = name.split(" ")
+        # TODO: rewrite completely
+        pos = 0
+        self.affix = ""
+        while pos < len(parts):
+            if len(self.affix) > 0:
+                self.affix += " "
+            self.affix += parts[pos]
+            pos += 1
+            self.affix = self.affix.strip()
+            if self.slot == ITEM_SLOT_WEAPON:
+                if self.affix in Item.weapon_list["affixes"]:
+                    break
+            elif self.slot == ITEM_SLOT_ARMOR:
+                if self.affix in Item.armor_list["affixes"]:
+                    break
+        self.type = ""
+        while pos < len(parts):
+            if len(self.type) > 0:
+                self.type += " "
+            self.type += parts[pos]
+            pos += 1
+            self.type = self.type.strip()
+            if self.slot == ITEM_SLOT_WEAPON:
+                if self.type in Item.weapon_list["types"]:
+                    break
+            elif self.slot == ITEM_SLOT_ARMOR:
+                if self.type in Item.armor_list["types"]:
+                    break
+        self.suffix = ""
+        while pos < len(parts):
+            if len(self.suffix) > 0:
+                self.suffix += " "
+            self.suffix += parts[pos]
+            pos += 1
+            self.suffix = self.suffix.strip()
+            if self.slot == ITEM_SLOT_WEAPON:
+                if self.suffix in Item.weapon_list["suffixes"]:
+                    break
+            elif self.slot == ITEM_SLOT_ARMOR:
+                if self.suffix in Item.armor_list["suffixes"]:
+                    break
+
+    def equip(self, owner):
+        self.owner = owner
+        if self.slot == ITEM_SLOT_WEAPON:
+            owner.weapon = self
+        elif self.slot == ITEM_SLOT_ARMOR:
+            owner.armor = self
 
     def __str__(self):
         return "{0} + {1}".format(self.name, self.level)

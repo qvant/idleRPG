@@ -9,7 +9,8 @@ from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CL
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
     CMD_SERVER_OK
-from .dictionary import get_class_names, get_class, get_ai
+from .dictionary import get_class_list, get_class_names, get_class, get_ai
+from .messages import *
 from .utility import get_logger
 
 QUEUE_INIT_BATCH = 10
@@ -31,6 +32,7 @@ class QueueListener:
             self.logger.setLevel(config.log_level)
         else:
             self.logger = get_logger(LOG_QUEUE, config.log_level, is_system=True)
+            self.trans = None
         if not self.enabled:
             return
         self.host = config.queue_host
@@ -61,6 +63,9 @@ class QueueListener:
     def renew(self, config):
         self.__init__(config, reload=True)
 
+    def set_translator(self, trans):
+        self.trans = trans
+
     def listen(self, server, player_list, db):
         self.listen_control(server)
         self.listen_cmd(server, player_list, db)
@@ -71,7 +76,7 @@ class QueueListener:
         try:
             msg_proceed = 0
             start_time = datetime.datetime.now()
-            class_list = get_class_names()
+            class_list = get_class_list()
             msg_cnt = 0
             for method_frame, properties, body in self.channel.consume(QUEUE_NAME_INIT, inactivity_timeout=0.01):
                 # if not timeout
@@ -186,6 +191,7 @@ class QueueListener:
         char_name = cmd.get("name")
         char_class = cmd.get("class")
         telegram_id = cmd.get("user_id")
+        locale = cmd.get("locale")
         self.logger.info("Character creation for user {0} started".format(telegram_id))
         char_id = None
         result = ''
@@ -201,11 +207,11 @@ class QueueListener:
         else:
             for i in player_list:
                 if i.name == char_name:
-                    result = 'Name is already taken'
+                    result = self.trans.get_message(M_NAME_IS_ALREADY_TAKEN, locale)
                     code = QUEUE_STATUS_NAME_TAKEN
                     break
                 elif telegram_id is not None and i.telegram_id == telegram_id:
-                    result = 'User ' + str(telegram_id) + " already have character"
+                    result = self.trans.get_message(M_USER_ALREADY_HAS_CHARACTER, locale).format(telegram_id)
                     code = QUEUE_STATUS_CHARACTER_EXISTS
                     break
         if len(result) == 0:
@@ -220,8 +226,8 @@ class QueueListener:
             else:
                 player_list.append(new_character)
                 char_id = new_character.id
-                result = "{} {} was created".format(new_character.class_name.capitalize(),
-                                                    new_character.name)
+                result = self.trans.get_message(M_CHARACTER_WAS_CREATED, locale).\
+                    format(self.trans.get_message(new_character.class_name, locale).capitalize(), new_character.name)
                 db.save_character(new_character)
                 db.commit()
                 code = QUEUE_STATUS_OK
@@ -240,6 +246,7 @@ class QueueListener:
 
     def delete_character_handler(self, cmd, db, player_list, delivery_tag):
         telegram_id = cmd.get("user_id")
+        locale = cmd.get("locale")
         self.logger.info("Character deletion for user {0} started".format(telegram_id))
         code = None
         result = ''
@@ -249,8 +256,9 @@ class QueueListener:
         else:
             for i in range(len(player_list)):
                 if player_list[i].telegram_id == telegram_id:
-                    result = "{} {} (level {}) was deleted".format(player_list[i].class_name.capitalize(),
-                                                                   player_list[i].name, player_list[i].level)
+                    result = self.trans.get_message(M_CHARACTER_WAS_DELETED, locale).\
+                        format(self.trans.get_message(player_list[i].class_name, locale).capitalize(),
+                               player_list[i].name, player_list[i].level)
                     db.delete_character(player_list[i])
                     db.commit()
                     del player_list[i]
@@ -258,7 +266,7 @@ class QueueListener:
                     break
         if code is None:
             code = QUEUE_STATUS_CHARACTER_NOT_EXISTS
-            result = "Character not found for user {0}".format(telegram_id)
+            result = self.trans.get_message(M_USER_HAS_NO_CHARACTER, locale).format(telegram_id)
         resp = {"code": code, "message": result, "user_id": telegram_id}
         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
@@ -266,6 +274,7 @@ class QueueListener:
 
     def get_character_status_handler(self, cmd, db, player_list, delivery_tag):
         telegram_id = cmd.get("user_id")
+        locale = cmd.get("locale")
         self.logger.info("try to find character with telegram id {0}".format(telegram_id))
         char_info = ''
         if telegram_id is None:
@@ -274,6 +283,7 @@ class QueueListener:
         else:
             for i in range(len(player_list)):
                 if player_list[i].telegram_id == telegram_id:
+                    player_list[i].set_locale(cmd.get("locale"))
                     char_info = str(player_list[i])
                     if player_list[i].need_save:
                         db.commit()
@@ -281,7 +291,7 @@ class QueueListener:
                     result = "Success"
                     break
             if len(char_info) == 0:
-                char_info = "User {0} have no character".format(telegram_id)
+                char_info = self.trans.get_message(M_USER_HAS_NO_CHARACTER, locale).format(telegram_id)
                 result = "Success"
                 code = QUEUE_STATUS_OK
         resp = {"code": code, "message": result, "user_id": telegram_id, "char_info": char_info,

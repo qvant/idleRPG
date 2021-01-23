@@ -64,9 +64,9 @@ class Persist:
             player = Character(name, class_by_name[class_name], telegram_id=telegram_id, is_created=False)
             player.level = level
             player.exp = exp
-            player.hp = hp
+            player.hp = max_hp
             player.max_hp = max_hp
-            player.mp = mp
+            player.mp = max_mp
             player.max_mp = max_mp
             player.base_attack = base_attack
             player.base_defence = base_defence
@@ -81,14 +81,14 @@ class Persist:
             player.set_id(db_id)
             if len(weapon_name) > 0:
                 weapon = Item(1, ITEM_SLOT_WEAPON)
-                weapon.name = weapon_name
+                weapon.set_name(weapon_name)
                 weapon.level = weapon_level
-                player.weapon = weapon
+                weapon.equip(player)
             if len(armor_name) > 0:
                 armor = Item(1, ITEM_SLOT_ARMOR)
-                armor.name = armor_name
+                armor.set_name(armor.name)
                 armor.level = armor_level
-                player.armor = armor
+                armor.equip(player)
             players.append(player)
             cnt += 1
             if cnt >= 100:
@@ -112,13 +112,13 @@ class Persist:
             try:
                 character.need_save = False
                 if character.weapon is not None:
-                    weapon_name = character.weapon.name
+                    weapon_name = character.weapon._name
                     weapon_level = character.weapon.level
                 else:
                     weapon_name = ''
                     weapon_level = None
                 if character.armor is not None:
-                    armor_name = character.armor.name
+                    armor_name = character.armor._name
                     armor_level = character.armor.level
                 else:
                     armor_name = ''

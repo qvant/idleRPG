@@ -1,5 +1,6 @@
 from .messages import *
 
+
 class MonsterType:
     def __init__(self, name, attack, defence, hp, exp, gold, level_multiplier, level):
         self.name = name
@@ -13,7 +14,8 @@ class MonsterType:
         self.level_applied = False
 
     def create_monster(self, apply_level, player):
-        m = Monster(self.name, self.attack, self.defence, self.hp, self.exp, self.gold, self.level_multiplier, apply_level, player)
+        m = Monster(self.name, self.attack, self.defence, self.hp, self.exp, self.gold, self.level_multiplier,
+                    apply_level, player)
         if apply_level > 0:
             m.apply_level(apply_level)
         return m
@@ -43,5 +45,6 @@ class Monster:
     def __str__(self):
         return "{0} {6}: {1}, {4}: {2}, {5}: {3}".format(
             self.player.trans.get_message(self.name, self.player.locale), self.hp, self.attack, self.defence,
-            self.player.trans.get_message(M_ATTACK, self.player.locale), self.player.trans.get_message(M_DEFENCE, self.player.locale),
-        self.player.trans.get_message(M_HP, self.player.locale))
+            self.player.trans.get_message(M_ATTACK, self.player.locale),
+            self.player.trans.get_message(M_DEFENCE, self.player.locale),
+            self.player.trans.get_message(M_HP, self.player.locale))

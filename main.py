@@ -1,6 +1,5 @@
 import argparse
 import codecs
-import copy
 import datetime
 import json
 import random
@@ -12,9 +11,9 @@ from lib.character import Character
 from lib.config import Config
 from lib.consts import *
 from lib.dictionary import set_class_list, set_ai_list
-from lib.effect import Effect, EffectType
+from lib.effect import EffectType
 from lib.item import Item
-from lib.l18n import L18n, Translator
+from lib.l18n import Translator
 from lib.quest import Quest
 from lib.monster import MonsterType
 from lib.persist import Persist
@@ -97,7 +96,7 @@ def init():
                 temp_effect = j.get("effect")
                 effect = None
                 if temp_effect is not None:
-                    effect = EffectType(name=j["name"], is_positive = temp_effect["is_positive"],
+                    effect = EffectType(name=j["name"], is_positive=temp_effect["is_positive"],
                                         attack=temp_effect.get("attack"), defence=temp_effect.get("defence"),
                                         damage_per_turn=temp_effect.get("damage_per_turn"),
                                         heal_per_turn=temp_effect.get("heal_per_turn"),
@@ -145,11 +144,11 @@ def init():
     monster_list = []
     for i in m_list_j:
         monster_list.append(MonsterType(name=i, attack=m_list_j[i]["attack"], defence=m_list_j[i]["defence"],
-                                    hp=m_list_j[i]["hp"],
-                                    exp=m_list_j[i]["exp"],
-                                    level_multiplier=m_list_j[i]["level_multiplier"],
-                                    level=m_list_j[i]["level"],
-                                    gold=m_list_j[i]["gold"],))
+                                        hp=m_list_j[i]["hp"],
+                                        exp=m_list_j[i]["exp"],
+                                        level_multiplier=m_list_j[i]["level_multiplier"],
+                                        level=m_list_j[i]["level"],
+                                        gold=m_list_j[i]["gold"], ))
 
     f = "db//weapons.json"
     fp = codecs.open(f, 'r', "utf-8")
@@ -290,6 +289,5 @@ def main():
 
 
 if __name__ == '__main__':
-
     init()
     main()

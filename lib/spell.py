@@ -1,6 +1,7 @@
 import random
 from .messages import *
 
+
 class Spell:
     def __init__(self, name, cost, min_damage, max_damage, is_positive=False, effect=None):
         self.name = name

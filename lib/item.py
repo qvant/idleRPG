@@ -29,6 +29,7 @@ class Item:
             return "{0} {1} {2}".format(self.owner.trans.get_message(self.affix, self.owner.locale),
                                         self.owner.trans.get_message(self.type, self.owner.locale),
                                         self.owner.trans.get_message(self.suffix, self.owner.locale))
+
     @property
     def _name(self):
         return "{0} {1} {2}".format(self.affix, self.type, self.suffix)

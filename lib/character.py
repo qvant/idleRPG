@@ -191,7 +191,8 @@ class Character:
                 else:
                     # no penalty for fail
                     pass
-                    self.save_history(Event(player=self, event_type=EVENT_TYPE_RUN_AWAY_FAILED, hp=self.hp, enemy=self.enemy))
+                    self.save_history(Event(player=self, event_type=EVENT_TYPE_RUN_AWAY_FAILED, hp=self.hp,
+                                            enemy=self.enemy))
         if self.enemy is not None:
             # decise if need to cast
             made_cast = False
@@ -240,13 +241,15 @@ class Character:
                             self.enemy.hp -= dmg
                             self.mp -= spell.cost
                             self.save_history(
-                                Event(player=self, event_type=EVENT_TYPE_CASTED_SPELL, enemy=self.enemy, spell=spell, damage=dmg))
+                                Event(player=self, event_type=EVENT_TYPE_CASTED_SPELL, enemy=self.enemy, spell=spell,
+                                      damage=dmg))
                         else:
                             self.mp -= spell.cost
                             if spell.effect is not None:
                                 spell.effect.apply(self)
                             self.save_history(
-                                Event(player=self, event_type=EVENT_TYPE_CASTED_SPELL_ON_HIMSELF, spell=spell, enemy=self.enemy))
+                                Event(player=self, event_type=EVENT_TYPE_CASTED_SPELL_ON_HIMSELF, spell=spell,
+                                      enemy=self.enemy))
             self.hp -= max(self.enemy.attack - self.defence, 1)
             if self.hp <= 0:
                 self.die()
@@ -351,8 +354,8 @@ class Character:
 
     def __str__(self):
         res = self.trans.get_message(M_CHARACTER_HEADER, self.locale)\
-            .format(self.name, self.trans.get_message(self.class_name, self.locale), self.hp, self.max_hp, self.mp, self.max_mp, self.exp,
-                    self.base_attack, self.attack, self.base_defence, self.defence)
+            .format(self.name, self.trans.get_message(self.class_name, self.locale), self.hp, self.max_hp,
+                    self.mp, self.max_mp, self.exp, self.base_attack, self.attack, self.base_defence, self.defence)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_LOCATION, self.locale).\
             format(self.trans.get_message(ACTION_NAMES[self.action], self.locale), self.town_distance,

@@ -40,5 +40,3 @@ class Quest:
                                             self.number,
                                             self.owner.trans.get_message(self.adjective, self.owner.locale),
                                             self.owner.trans.get_message(self.noun, self.owner.locale))
-
-

@@ -44,10 +44,8 @@ class Translator:
         self.locales = {}
         for dirpath, dirnames, filenames in os.walk("l18n"):
             for lang_file in filenames:
-                #logger.info("Start process localization file {0}".format(lang_file))
                 self.locales[lang_file[:2]] = L18n()
                 self.locales[lang_file[:2]].set_locale(lang_file[:-4])
-                #logger.info("Finish process localization file {0}".format(filenames))
         self.default_translator = self.locales["en"]
         self.active_translator = self.default_translator
 

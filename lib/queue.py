@@ -148,7 +148,8 @@ class QueueListener:
             start_time = datetime.datetime.now()
             class_list = get_class_names()
             msg_cnt = 0
-            msg_proceed = 0
+            user_msg_proceed = 0
+            admin_msg_proceed = 0
             for method_frame, properties, body in self.channel.consume(QUEUE_NAME_CMD, inactivity_timeout=0.01):
 
                 # if not timeout
@@ -169,7 +170,10 @@ class QueueListener:
                     # Acknowledge the message
                     self.channel.basic_ack(method_frame.delivery_tag)
                     self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
-                    msg_proceed += 1
+                    if msg.get("sent_by_admin"):
+                        admin_msg_proceed += 1
+                    else:
+                        user_msg_proceed += 1
                     msg_cnt += 1
                     if msg_cnt >= self.batch_size > 0:
                         self.logger.info("Proceed {0} messages in queue {1}, interrupt".format(msg_cnt,
@@ -180,9 +184,10 @@ class QueueListener:
                     break
             self.channel.cancel()
             end_time = datetime.datetime.now()
-            server.inc_user_cmd(msg_proceed)
+            server.inc_user_cmd(user_msg_proceed)
+            server.inc_admin_cmd(admin_msg_proceed)
             self.logger.info("Queue processing done, started at: {0}, ended at: {1}, {2} messages proceed".format(
-                start_time, end_time, msg_proceed))
+                start_time, end_time, admin_msg_proceed + user_msg_proceed))
         except pika.exceptions.AMQPError as exc:
             self.logger.critical(exc)
             self.enabled = False

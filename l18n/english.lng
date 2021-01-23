@@ -1,5 +1,5 @@
 {
-  "CHARACTER_HEADER": "{0} is level {8} {1}. HP: {2}/{3} MP: {4}/{5}, EXP: {6}. Attack {7}({8}), defence {9}({10}).",
+  "CHARACTER_HEADER": "{0} is level {8} {11}. HP: {2}/{3} MP: {4}/{5}, EXP: {6}. Attack {7}({8}), defence {9}({10}).",
   "CHARACTER_LOCATION": "He is {0} now. He's in {1} miles from town and doing quest \"{2}\" ( {3} percent complete)",
   "CHARACTER_WEAPON": "He's equipped with {0}. ",
   "CHARACTER_ARMOR": "He's wearing {0}. ",

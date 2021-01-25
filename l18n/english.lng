@@ -9,7 +9,7 @@
   "CHARACTER_EFFECT_LIST": "He's under following effects:\n",
   "CHARACTER_HAVE_NO_EFFECTS": "He has no effects.",
   "CHARACTER_LAST_EVENTS": "Recent events: ",
-  "CHARACTER_ENEMY": "In fight with: {0}",
+  "CHARACTER_ENEMY": "In fight with {0}",
   "CHARACTER_RESURRECT_TIMER": "Waiting for resurrection, {0} turns left",
   "plate mail": "plate mail",
   "chain mail": "chain mail",

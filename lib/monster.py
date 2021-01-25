@@ -43,8 +43,8 @@ class Monster:
             self.exp = round(self.exp * level * self.level_multiplier)
 
     def __str__(self):
-        return "{0} {6}: {1}, {4}: {2}, {5}: {3}".format(
+        return "{0} ({6}: {1}, {4}: {2}, {5}: {3})".format(
             self.player.trans.get_message(self.name, self.player.locale), self.hp, self.attack, self.defence,
-            self.player.trans.get_message(M_ATTACK, self.player.locale),
-            self.player.trans.get_message(M_DEFENCE, self.player.locale),
-            self.player.trans.get_message(M_HP, self.player.locale))
+            self.player.trans.get_message(M_ATTACK, self.player.locale).capitalize(),
+            self.player.trans.get_message(M_DEFENCE, self.player.locale).capitalize(),
+            self.player.trans.get_message(M_HP, self.player.locale).capitalize())

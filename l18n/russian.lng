@@ -9,7 +9,7 @@
   "CHARACTER_EFFECT_LIST": "На него действуют эффекты:\n",
   "CHARACTER_HAVE_NO_EFFECTS": "На него не действует ни один эффект.",
   "CHARACTER_LAST_EVENTS": "Последние события: ",
-  "CHARACTER_ENEMY": "Сражается с: {0}",
+  "CHARACTER_ENEMY": "Сражается с {0}",
   "CHARACTER_RESURRECT_TIMER": "Ждет воскрешения, осталось {0} ходов.",
   "plate mail": "латы",
   "chain mail": "кольчуга",

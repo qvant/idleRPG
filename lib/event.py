@@ -17,11 +17,12 @@ EVENT_TYPE_BOUGHT_HEALTH_POTIONS = 14
 EVENT_TYPE_BOUGHT_MANA_POTIONS = 15
 EVENT_TYPE_BOUGHT_EQUIPMENT = 16
 EVENT_TYPE_RESTED = 17
+EVENT_TYPE_USED_ABILITY = 18
 
 
 class Event:
     def __init__(self, event_type, player, enemy=None, hp=None, mp=None, spell=None, damage=None, potion_number=None,
-                 exp=None, gold=None, quest=None, level=None, item=None):
+                 exp=None, gold=None, quest=None, level=None, item=None, ability_type=None):
         self.type = event_type
         self.player = player
         self.enemy = enemy
@@ -35,6 +36,7 @@ class Event:
         self.quest = quest
         self.level = level
         self.item = item
+        self.ability_type = ability_type
 
     def __str__(self):
         if self.type == EVENT_TYPE_RESURRECTED:
@@ -100,3 +102,9 @@ class Event:
         elif self.type == EVENT_TYPE_RESTED:
             return self.player.trans.get_message(M_RESTED, self.player.locale).format(self.player.name, self.hp,
                                                                                       self.mp)
+        elif self.type == EVENT_TYPE_USED_ABILITY:
+            return self.player.trans.get_message(M_USED_ABILITY, self.player.locale).\
+                format(self.player.name,
+                       self.player.trans.get_message(self.ability_type.name, self.player.locale),
+                       self.damage,
+                       self.player.trans.get_message(self.enemy.name, self.player.locale))

@@ -5,6 +5,7 @@ import json
 import random
 import time
 
+from lib.ability import AbilityType
 from lib.ai import CharAI
 from lib.char_classes import CharClass
 from lib.character import Character
@@ -107,6 +108,12 @@ def init():
                                    max_damage=j["max_damage"], is_positive=is_positive, effect=effect)
 
                 temp_class.add_spell(temp_spell)
+        if "abilities" in class_list_j[i].keys():
+            for j in class_list_j[i]["abilities"]:
+                temp_ability = AbilityType(name=j["name"], event=j["event"], action=j["action"],
+                                           description_code=j["description_code"], chance=j["chance"])
+
+                temp_class.add_ability(temp_ability)
         class_list.append(temp_class)
     set_class_list(class_list, trans.locales)
 

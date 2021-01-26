@@ -1,4 +1,5 @@
 from .messages import *
+from .event import Event, EVENT_TYPE_FOUND_LOOT
 
 
 class MonsterType:
@@ -41,6 +42,15 @@ class Monster:
             self.defence = round(self.defence * level * self.level_multiplier)
             self.hp = round(self.hp * level * self.level_multiplier)
             self.exp = round(self.exp * level * self.level_multiplier)
+
+    def die(self):
+        self.player.give_exp(self.exp)
+        self.player.give_gold(self.gold)
+        self.player.monsters_killed += 1
+        self.player.save_history(
+            Event(player=self.player, event_type=EVENT_TYPE_FOUND_LOOT, enemy=self, gold=self.gold,
+                  exp=self.exp))
+        self.player.set_enemy(None)
 
     def __str__(self):
         return "{0} ({6}: {1}, {4}: {2}, {5}: {3})".format(

@@ -1,5 +1,6 @@
 import math
 
+from .ability import ABILITY_TRIGGER_COMBAT_START
 from .consts import *
 from .event import *
 from .item import Item
@@ -23,6 +24,7 @@ class Character:
         self.base_attack = 0
         self.base_defence = 0
         self.spells = []
+        self.abilities = []
         self.action = ACTION_NONE
         self.town_distance = 0
         self.quest_progress = 0.00
@@ -110,6 +112,8 @@ class Character:
 
     def set_enemy(self, enemy):
         self.enemy = enemy
+        for i in self.abilities:
+            i.trigger(event_type=ABILITY_TRIGGER_COMBAT_START, player=self)
 
     def set_id(self, db_id):
         if self.id is None:
@@ -257,13 +261,7 @@ class Character:
                 if not made_cast:
                     self.enemy.hp -= max(self.attack - self.enemy.defence, 0)
                 if self.enemy.hp <= 0:
-                    self.give_exp(self.enemy.exp)
-                    self.give_gold(self.enemy.gold)
-                    self.monsters_killed += 1
-                    self.save_history(
-                        Event(player=self, event_type=EVENT_TYPE_FOUND_LOOT, enemy=self.enemy, gold=self.enemy.gold,
-                              exp=self.enemy.exp))
-                    self.set_enemy(None)
+                    self.enemy.die()
 
     def set_quest(self, quest):
         self.quest = quest
@@ -379,6 +377,18 @@ class Character:
             res += chr(10)
         if first_spell:
             res += self.trans.get_message(M_CHARACTER_HAVE_NO_SPELLS, self.locale)
+        res += chr(10)
+        first_ability = True
+        for i in self.abilities:
+            if first_ability:
+                first_ability = False
+                res += self.trans.get_message(M_CHARACTER_ABILITIES_LIST, self.locale)
+                res += chr(10)
+            res += "  "
+            res += i.translate(self.trans, self.locale)
+            res += chr(10)
+        if first_ability:
+            res += self.trans.get_message(M_CHARACTER_HAVE_NO_ABILITIES, self.locale)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_GOLD_AND_POTIONS, self.locale).format(self.gold, self.health_potions,
                                                                                         self.mana_potions)

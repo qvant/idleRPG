@@ -5,7 +5,7 @@ import psutil
 
 class Server:
     def __init__(self):
-        self.startup = datetime.datetime.now()
+        self.startup = datetime.datetime.now().replace(microsecond=0)
         self.players = []
         self.sys_commands_proceed = 0
         self.user_commands_proceed = 0
@@ -19,7 +19,7 @@ class Server:
 
     @property
     def uptime(self):
-        return datetime.datetime.now() - self.startup
+        return datetime.datetime.now().replace(microsecond=0) - self.startup
 
     def inc_turns(self):
         if self.turn == 1:
@@ -68,7 +68,8 @@ class Server:
         return str(process.cpu_percent())
 
     def __str__(self):
-        res = "Server started at {0} (uptime {1} second).".format(self.startup, self.uptime) + chr(10)
+        res = "Server started at {0} (uptime {1} second).".format(self.startup,
+                                                                  self.uptime) + chr(10)
         res += "Now it runs with {0} characters".format(len(self.players)) + chr(10)
         res += "{0} turns passed".format(self.turn) + chr(10)
         res += "Was processed {0} system, {1} user and {2} admin commands".\

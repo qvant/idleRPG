@@ -103,8 +103,16 @@ class Event:
             return self.player.trans.get_message(M_RESTED, self.player.locale).format(self.player.name, self.hp,
                                                                                       self.mp)
         elif self.type == EVENT_TYPE_USED_ABILITY:
-            return self.player.trans.get_message(M_USED_ABILITY, self.player.locale).\
-                format(self.player.name,
-                       self.player.trans.get_message(self.ability_type.name, self.player.locale),
-                       self.damage,
-                       self.player.trans.get_message(self.enemy.name, self.player.locale))
+            if self.ability_type.effect is None:
+                return self.player.trans.get_message(M_USED_ABILITY, self.player.locale).\
+                    format(self.player.name,
+                           self.player.trans.get_message(self.ability_type.name, self.player.locale),
+                           self.damage,
+                           self.player.trans.get_message(self.enemy.name, self.player.locale))
+            else:
+                return self.player.trans.get_message(M_USED_ABILITY_STATUS, self.player.locale). \
+                    format(self.player.name,
+                           self.player.trans.get_message(self.ability_type.name, self.player.locale),
+                           self.damage,
+                           self.player.trans.get_message(self.ability_type.name, self.player.locale),
+                           self.player.trans.get_message(self.enemy.name, self.player.locale))

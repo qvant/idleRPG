@@ -1,6 +1,6 @@
 import math
 
-from .ability import ABILITY_TRIGGER_COMBAT_START
+from .ability import ABILITY_TRIGGER_COMBAT_START, ABILITY_TRIGGER_COMBAT_ATTACK
 from .consts import *
 from .event import *
 from .item import Item
@@ -70,9 +70,11 @@ class Character:
         else:
             item_bonus = 0
         effect_bonus = 0
+        effect_percent = 1
         for i in self.effects:
             effect_bonus += i.attack
-        return self.base_attack + item_bonus + effect_bonus
+            effect_percent += i.attack_percent
+        return round(max((self.base_attack + item_bonus + effect_bonus) * effect_percent, 0))
 
     @property
     def defence(self):
@@ -81,9 +83,11 @@ class Character:
         else:
             item_bonus = 0
         effect_bonus = 0
+        effect_percent = 1
         for i in self.effects:
             effect_bonus += i.defence
-        return self.base_defence + item_bonus + effect_bonus
+            effect_percent += i.defence_percent
+        return round((self.base_defence + item_bonus + effect_bonus) * effect_percent)
 
     def apply_effects(self):
         for i in self.effects:
@@ -254,7 +258,8 @@ class Character:
                             self.save_history(
                                 Event(player=self, event_type=EVENT_TYPE_CASTED_SPELL_ON_HIMSELF, spell=spell,
                                       enemy=self.enemy))
-            self.hp -= max(self.enemy.attack - self.defence, 1)
+            if self.enemy.attack > 0:
+                self.hp -= max(self.enemy.attack - self.defence, 1)
             if self.hp <= 0:
                 self.die()
             else:
@@ -262,6 +267,11 @@ class Character:
                     self.enemy.hp -= max(self.attack - self.enemy.defence, 0)
                 if self.enemy.hp <= 0:
                     self.enemy.die()
+                else:
+                    for i in self.abilities:
+                        i.trigger(event_type=ABILITY_TRIGGER_COMBAT_ATTACK, player=self)
+                if self.enemy is not None:
+                    self.enemy.apply_effects()
 
     def set_quest(self, quest):
         self.quest = quest

@@ -103,6 +103,9 @@ def init():
                                         heal_per_turn=temp_effect.get("heal_per_turn"),
                                         duration=temp_effect["duration"],
                                         level_scale_modifier=temp_effect.get("level_scale_modifier"),
+                                        can_stack=temp_effect.get("can_stack"),
+                                        attack_percent=temp_effect.get("attack_percent"),
+                                        defence_percent=temp_effect.get("defence_percent"),
                                         )
                 temp_spell = Spell(name=j["name"], cost=j["cost"], min_damage=j["min_damage"],
                                    max_damage=j["max_damage"], is_positive=is_positive, effect=effect)
@@ -110,8 +113,22 @@ def init():
                 temp_class.add_spell(temp_spell)
         if "abilities" in class_list_j[i].keys():
             for j in class_list_j[i]["abilities"]:
+                temp_effect = j.get("effect")
+                effect = None
+                if temp_effect is not None:
+                    effect = EffectType(name=j["name"], is_positive=temp_effect["is_positive"],
+                                        attack=temp_effect.get("attack"), defence=temp_effect.get("defence"),
+                                        damage_per_turn=temp_effect.get("damage_per_turn"),
+                                        heal_per_turn=temp_effect.get("heal_per_turn"),
+                                        duration=temp_effect["duration"],
+                                        level_scale_modifier=temp_effect.get("level_scale_modifier"),
+                                        can_stack=temp_effect.get("can_stack"),
+                                        attack_percent=temp_effect.get("attack_percent"),
+                                        defence_percent=temp_effect.get("defence_percent"),
+                                        )
                 temp_ability = AbilityType(name=j["name"], event=j["event"], action=j["action"],
-                                           description_code=j["description_code"], chance=j["chance"])
+                                           description_code=j["description_code"], chance=j["chance"],
+                                           effect=effect)
 
                 temp_class.add_ability(temp_ability)
         class_list.append(temp_class)

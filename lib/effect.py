@@ -3,12 +3,14 @@ from .messages import *
 
 class Effect:
     def __init__(self, name, is_positive, attack, defence, init_duration, damage_per_turn, heal_per_turn, effect_type,
-                 owner):
+                 owner, attack_percent=None, defence_percent=None):
         self.name = name
         self.type = effect_type
         self.is_positive = is_positive
         self.attack = attack
+        self.attack_percent = attack_percent
         self.defence = defence
+        self.defence_percent = defence_percent
         self.init_duration = init_duration
         self.duration = init_duration
         self.damage_per_turn = damage_per_turn
@@ -21,11 +23,18 @@ class Effect:
         self.duration -= 1
 
     def __str__(self):
+        # TODO use str from type, they are quite the same
         res = "{0}:".format(self.owner.trans.get_message(self.name, self.owner.locale))
         if self.attack != 0:
             res += " {1} {0}".format(self.attack, self.owner.trans.get_message(M_ATTACK, self.owner.locale))
         if self.defence != 0:
             res += " {1} {0}".format(self.defence, self.owner.trans.get_message(M_DEFENCE, self.owner.locale))
+        if self.attack_percent != 1:
+            res += " {1} {0}".format(int(self.attack_percent * 100),
+                                     self.owner.trans.get_message(M_ATTACK, self.owner.locale))
+        if self.defence_percent != 1:
+            res += " {1} {0}".format(int(self.defence_percent * 100),
+                                     self.owner.trans.get_message(M_DEFENCE, self.owner.locale))
         if self.damage_per_turn != 0:
             res += " {1} {0}".format(self.damage_per_turn, self.owner.trans.get_message(M_DAMAGE_PER_TURN,
                                                                                         self.owner.locale))
@@ -39,7 +48,7 @@ class Effect:
 
 class EffectType:
     def __init__(self, name, is_positive, attack, defence, duration, damage_per_turn, heal_per_turn,
-                 level_scale_modifier=0):
+                 level_scale_modifier=0, attack_percent=None, defence_percent=None, can_stack=None):
         self.name = name
         self.is_positive = is_positive
         if attack is not None:
@@ -63,23 +72,49 @@ class EffectType:
             self.level_scale_modifier = level_scale_modifier
         else:
             self.level_scale_modifier = 0
+        if attack_percent is not None:
+            self.attack_percent = attack_percent
+        else:
+            self.attack_percent = 1
+        if defence_percent is not None:
+            self.defence_percent = defence_percent
+        else:
+            self.defence_percent = 1
+        if can_stack is not None:
+            self.can_stack = can_stack
+        else:
+            self.can_stack = False
 
     def apply(self, target):
-        effect = Effect(self.name, self.is_positive, self.attack * (1 + self.level_scale_modifier * (target.level - 1)),
-                        self.defence * (1 + self.level_scale_modifier * (target.level - 1)), self.duration,
-                        self.damage_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
-                        self.heal_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
-                        self, target)
-        target.effects.append(effect)
+        applied = False
+        if not self.can_stack:
+            for i in target.effects:
+                if i.name == self.name:
+                    applied = True
+                    # renew
+                    i.duration = max(self.duration, i.duration)
+        if not applied:
+            effect = Effect(self.name, self.is_positive, self.attack * (1 + self.level_scale_modifier * (target.level - 1)),
+                            self.defence * (1 + self.level_scale_modifier * (target.level - 1)), self.duration,
+                            self.damage_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
+                            self.heal_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
+                            self, target, self.attack_percent, self.defence_percent)
+            target.effects.append(effect)
 
     def translate(self, trans, code):
         res = ""
         if self.attack != 0:
             res += " {1} {0}".format(self.attack, trans.get_message(M_ATTACK, code))
+        if self.attack_percent != 1:
+            res += " {1} {0}%".format(int(self.attack_percent * 100), trans.get_message(M_ATTACK, code))
         if self.defence != 0:
             if len(res) > 0:
                 res += ", "
             res += " {1} {0}".format(self.defence, trans.get_message(M_DEFENCE, code))
+        if self.defence_percent != 1:
+            if len(res) > 0:
+                res += ", "
+            res += " {1} {0}%".format((self.defence_percent * 100), trans.get_message(M_DEFENCE, code))
         if self.damage_per_turn != 0:
             if len(res) > 0:
                 res += ", "

@@ -3,19 +3,20 @@ from .messages import *
 
 class Effect:
     def __init__(self, name, is_positive, attack, defence, init_duration, damage_per_turn, heal_per_turn, effect_type,
-                 owner, attack_percent=None, defence_percent=None):
+                 owner, attack_percent=None, defence_percent=None, die_at=None):
         self.name = name
         self.type = effect_type
         self.is_positive = is_positive
-        self.attack = attack
+        self.attack = int(attack)
         self.attack_percent = attack_percent
-        self.defence = defence
+        self.defence = int(defence)
         self.defence_percent = defence_percent
         self.init_duration = init_duration
         self.duration = init_duration
         self.damage_per_turn = damage_per_turn
         self.heal_per_turn = heal_per_turn
         self.owner = owner
+        self.die_at = die_at
 
     def tick(self, target):
         target.hp -= self.damage_per_turn
@@ -30,10 +31,10 @@ class Effect:
         if self.defence != 0:
             res += " {1} {0}".format(self.defence, self.owner.trans.get_message(M_DEFENCE, self.owner.locale))
         if self.attack_percent != 1:
-            res += " {1} {0}".format(int(self.attack_percent * 100),
+            res += " {1} {0}%".format(int(self.attack_percent * 100),
                                      self.owner.trans.get_message(M_ATTACK, self.owner.locale))
         if self.defence_percent != 1:
-            res += " {1} {0}".format(int(self.defence_percent * 100),
+            res += " {1} {0}%".format(int(self.defence_percent * 100),
                                      self.owner.trans.get_message(M_DEFENCE, self.owner.locale))
         if self.damage_per_turn != 0:
             res += " {1} {0}".format(self.damage_per_turn, self.owner.trans.get_message(M_DAMAGE_PER_TURN,
@@ -41,6 +42,9 @@ class Effect:
         if self.heal_per_turn != 0:
             res += " {1} {0}".format(self.heal_per_turn,
                                      self.owner.trans.get_message(M_HEAL_PER_TURN, self.owner.locale))
+        if self.die_at != 0:
+            res += " {1} {0}".format(self.die_at,
+                                     self.owner.trans.get_message(M_DIE_AT, self.owner.locale))
         res += " {2}  {0} / {1}".format(self.duration, self.init_duration,
                                         self.owner.trans.get_message(M_DURATION, self.owner.locale))
         return res
@@ -48,7 +52,8 @@ class Effect:
 
 class EffectType:
     def __init__(self, name, is_positive, attack, defence, duration, damage_per_turn, heal_per_turn,
-                 level_scale_modifier=0, attack_percent=None, defence_percent=None, can_stack=None):
+                 level_scale_modifier=0, attack_percent=None, defence_percent=None, can_stack=None,
+                 die_at=None):
         self.name = name
         self.is_positive = is_positive
         if attack is not None:
@@ -84,6 +89,10 @@ class EffectType:
             self.can_stack = can_stack
         else:
             self.can_stack = False
+        if die_at is not None:
+            self.die_at = die_at
+        else:
+            self.die_at = 0
 
     def apply(self, target):
         applied = False
@@ -98,7 +107,7 @@ class EffectType:
                             self.defence * (1 + self.level_scale_modifier * (target.level - 1)), self.duration,
                             self.damage_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
                             self.heal_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
-                            self, target, self.attack_percent, self.defence_percent)
+                            self, target, self.attack_percent, self.defence_percent, self.die_at)
             target.effects.append(effect)
 
     def translate(self, trans, code):
@@ -123,6 +132,10 @@ class EffectType:
             if len(res) > 0:
                 res += ", "
             res += " {1} {0}".format(self.heal_per_turn, trans.get_message(M_HEAL_PER_TURN, code))
+        if self.die_at != 0:
+            if len(res) > 0:
+                res += ", "
+            res += " {1} {0}".format(self.die_at, trans.get_message(M_DIE_AT, code))
         if self.level_scale_modifier != 0:
             res += ", "
             res += trans.get_message(M_LEVEL_SCALED, code).format(self.level_scale_modifier)

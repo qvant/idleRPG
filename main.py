@@ -104,6 +104,7 @@ def init():
                                         duration=temp_effect["duration"],
                                         level_scale_modifier=temp_effect.get("level_scale_modifier"),
                                         can_stack=temp_effect.get("can_stack"),
+                                        die_at=temp_effect.get("die_at"),
                                         attack_percent=temp_effect.get("attack_percent"),
                                         defence_percent=temp_effect.get("defence_percent"),
                                         )
@@ -123,6 +124,7 @@ def init():
                                         duration=temp_effect["duration"],
                                         level_scale_modifier=temp_effect.get("level_scale_modifier"),
                                         can_stack=temp_effect.get("can_stack"),
+                                        die_at=temp_effect.get("die_at"),
                                         attack_percent=temp_effect.get("attack_percent"),
                                         defence_percent=temp_effect.get("defence_percent"),
                                         )

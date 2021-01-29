@@ -38,12 +38,17 @@ class Monster:
         self.effects = []
 
     @property
+    def die_at(self):
+        return 0
+
+    @property
     def attack(self):
         effect_bonus = 0
         effect_percent = 1
         for i in self.effects:
             effect_bonus += i.attack
-            effect_percent += i.attack_percent
+            if i.attack_percent != 1:
+                effect_percent += i.attack_percent
         return round(max((self.base_attack + effect_bonus) * effect_percent, 0))
 
     @property
@@ -52,7 +57,8 @@ class Monster:
         effect_percent = 1
         for i in self.effects:
             effect_bonus += i.defence
-            effect_percent += i.defence_percent
+            if i.defence_percent != 1:
+                effect_percent += i.defence_percent
         return round((self.base_defence + effect_bonus) * effect_percent)
 
     def apply_effects(self):

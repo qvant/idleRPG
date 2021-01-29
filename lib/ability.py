@@ -7,11 +7,14 @@ ABILITY_SHIELD_SLAM = "Shield slam"
 ABILITY_ASSAULT = "Assault"
 ABILITY_SECOND_STRIKE = "Second strike"
 ABILITY_BLEED = "Bleed"
+ABILITY_JUST_EFFECT = "JUST_EFFECT"
 ABILITY_TRIGGER_COMBAT_START = "combat_start"
 ABILITY_TRIGGER_COMBAT_ATTACK = "combat_attack"
+ABILITY_TRIGGER_COMBAT_RECEIVE_DMG = "receive_damage"
 
-ABILITY_TRIGGERS = [ABILITY_TRIGGER_COMBAT_START, ABILITY_TRIGGER_COMBAT_ATTACK]
-ABILITIES = [ABILITY_BACKSTAB, ABILITY_SHIELD_SLAM, ABILITY_ASSAULT, ABILITY_SECOND_STRIKE, ABILITY_BLEED]
+ABILITY_TRIGGERS = [ABILITY_TRIGGER_COMBAT_START, ABILITY_TRIGGER_COMBAT_ATTACK, ABILITY_TRIGGER_COMBAT_RECEIVE_DMG]
+ABILITIES = [ABILITY_BACKSTAB, ABILITY_SHIELD_SLAM, ABILITY_ASSAULT, ABILITY_SECOND_STRIKE, ABILITY_BLEED,
+             ABILITY_JUST_EFFECT]
 
 
 class AbilityType:
@@ -81,7 +84,10 @@ class AbilityType:
             if player.enemy.hp <= 0:
                 player.enemy.die()
         if player.enemy is not None and self.effect is not None:
-            self.effect.apply(player.enemy)
+            if self.effect.is_positive:
+                self.effect.apply(player)
+            else:
+                self.effect.apply(player.enemy)
 
     def translate(self, trans, code):
         res = "{0} ({1}: {2}. {3}. {4}: {5} %.".format(trans.get_message(self.name, code).capitalize(),

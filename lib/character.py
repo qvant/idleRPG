@@ -1,6 +1,6 @@
 import math
 
-from .ability import ABILITY_TRIGGER_COMBAT_START, ABILITY_TRIGGER_COMBAT_ATTACK
+from .ability import ABILITY_TRIGGER_COMBAT_START, ABILITY_TRIGGER_COMBAT_ATTACK, ABILITY_TRIGGER_COMBAT_RECEIVE_DMG
 from .consts import *
 from .event import *
 from .item import Item
@@ -73,8 +73,16 @@ class Character:
         effect_percent = 1
         for i in self.effects:
             effect_bonus += i.attack
-            effect_percent += i.attack_percent
+            if i.attack_percent != 1:
+                effect_percent += i.attack_percent
         return round(max((self.base_attack + item_bonus + effect_bonus) * effect_percent, 0))
+
+    @property
+    def die_at(self):
+        effect_bonus = 0
+        for i in self.effects:
+            effect_bonus += i.die_at
+        return effect_bonus
 
     @property
     def defence(self):
@@ -86,7 +94,8 @@ class Character:
         effect_percent = 1
         for i in self.effects:
             effect_bonus += i.defence
-            effect_percent += i.defence_percent
+            if i.defence_percent != 1:
+                effect_percent += i.defence_percent
         return round((self.base_defence + item_bonus + effect_bonus) * effect_percent)
 
     def apply_effects(self):
@@ -260,7 +269,9 @@ class Character:
                                       enemy=self.enemy))
             if self.enemy.attack > 0:
                 self.hp -= max(self.enemy.attack - self.defence, 1)
-            if self.hp <= 0:
+                for i in self.abilities:
+                    i.trigger(event_type=ABILITY_TRIGGER_COMBAT_RECEIVE_DMG, player=self)
+            if self.hp <= self.die_at:
                 self.die()
             else:
                 if not made_cast:
@@ -364,7 +375,7 @@ class Character:
         res = self.trans.get_message(M_CHARACTER_HEADER, self.locale)\
             .format(self.name, self.trans.get_message(self.class_name, self.locale).lower(), self.hp, self.max_hp,
                     self.mp, self.max_mp, self.exp, self.base_attack, self.attack, self.base_defence, self.defence,
-                    self.level)
+                    self.level, self.die_at)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_LOCATION, self.locale).\
             format(self.trans.get_message(ACTION_NAMES[self.action], self.locale), self.town_distance,

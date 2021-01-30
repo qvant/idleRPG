@@ -8,7 +8,7 @@ from .character import Character
 from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CLASS_LIST, CMD_CREATE_CHARACTER, \
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
-    CMD_SERVER_OK
+    CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
 from .messages import *
 from .utility import get_logger
@@ -66,9 +66,9 @@ class QueueListener:
     def set_translator(self, trans):
         self.trans = trans
 
-    def listen(self, server, player_list, db):
+    def listen(self, server, player_list, db, feedback):
         self.listen_control(server)
-        self.listen_cmd(server, player_list, db)
+        self.listen_cmd(server, player_list, db, feedback)
 
     def listen_control(self, server):
         if not self.enabled:
@@ -117,6 +117,27 @@ class QueueListener:
                         self.channel.cancel()
                         self.logger.info("Received normal shutdown command, will finish work on the end of turn")
                         server.shutdown()
+                    elif cmd == CMD_GET_FEEDBACK:
+                        feed = server.feedback.get_message()
+                        if feed is not None:
+                            response = {"cmd_type": CMD_SENT_FEEDBACK,
+                                        "user_id": msg.get("user_id"), "message": feed.message,
+                                        "user_sent_id": feed.telegram_id, "user_sent_nick": feed.telegram_nickname,
+                                        "message_id": feed.id}
+                        else:
+                            response = {"cmd_type": CMD_SERVER_OK,
+                                        "user_id": msg.get("user_id"), "message": "Feedback inbox is empty"}
+                        response = json.dumps(response)
+                        self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
+                        self.logger.info("Received send feedback message, sent response")
+                    elif cmd == CMD_CONFIRM_FEEDBACK:
+                        feed_id = msg.get("message_id")
+                        server.feedback.read_message(feed_id)
+                        response = {"cmd_type": CMD_SERVER_OK,
+                                    "user_id": msg.get("user_id"), "message": "Was confirmed {0}".format(feed_id)}
+                        response = json.dumps(response)
+                        self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
+                        self.logger.info("Received send feedback message, sent response")
                     else:
                         self.logger.error("Message {0} has unknown command type {1}".format(msg, cmd))
                     # Acknowledge the message
@@ -141,7 +162,7 @@ class QueueListener:
             self.logger.critical(exc)
             self.enabled = False
 
-    def listen_cmd(self, server, player_list, db):
+    def listen_cmd(self, server, player_list, db, feedback):
         if not self.enabled:
             return
         try:
@@ -165,6 +186,8 @@ class QueueListener:
                         self.delete_character_handler(msg, db, player_list, method_frame.delivery_tag)
                     elif cmd == CMD_GET_CHARACTER_STATUS:
                         self.get_character_status_handler(msg, db, player_list, method_frame.delivery_tag)
+                    elif cmd == CMD_FEEDBACK:
+                        self.feedback_message_handler(msg, db, feedback, method_frame.delivery_tag)
                     else:
                         self.logger.error("Message with command type {0} not supported".format(cmd))
                     # Acknowledge the message
@@ -304,3 +327,25 @@ class QueueListener:
         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
                                                                                                QUEUE_NAME_RESPONSES))
+
+    def feedback_message_handler(self, cmd, db, feedback, delivery_tag):
+        telegram_id = cmd.get("user_id")
+        telegram_nickname = cmd.get("user_name")
+        message = cmd.get("message")
+        if telegram_id is None:
+            result = 'telegram_id is empty'
+            code = QUEUE_STATUS_TLG_ID_EMPTY
+        else:
+            try:
+                feedback.add_message(telegram_id=telegram_id, telegram_nickname=telegram_nickname, message=message)
+                result = "Success"
+                code = QUEUE_STATUS_OK
+            except ValueError as err:
+                result = str(err)
+                code = QUEUE_STATUS_ERROR
+        resp = {"code": code, "message": result, "user_id": telegram_id,
+                "cmd_type": CMD_FEEDBACK_RECEIVE}
+        self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))
+        self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
+                                                                                               QUEUE_NAME_RESPONSES))
+

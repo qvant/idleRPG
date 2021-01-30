@@ -16,6 +16,7 @@ class Server:
         self.memory_after_turn_max_hist = None
         self.memory_after_turn_last = None
         self.history_length = None
+        self.feedback = None
 
     @property
     def uptime(self):
@@ -43,6 +44,9 @@ class Server:
 
     def set_hist_len(self, history_length):
         self.history_length = history_length
+
+    def set_feedback(self, feedback):
+        self.feedback = feedback
 
     def shutdown(self):
         self.is_shutdown = True
@@ -72,6 +76,7 @@ class Server:
                                                                   self.uptime) + chr(10)
         res += "Now it runs with {0} characters".format(len(self.players)) + chr(10)
         res += "{0} turns passed".format(self.turn) + chr(10)
+        res += "{0} feedback messages to read".format(self.feedback.get_message_number()) + chr(10)
         res += "Was processed {0} system, {1} user and {2} admin commands".\
             format(self.sys_commands_proceed, self.user_commands_proceed, self.admin_commands_proceed) + chr(10)
         res += chr(10)

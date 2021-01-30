@@ -25,6 +25,7 @@ class Persist:
 
     def clear_all(self):
         self.cursor.execute("""truncate table idle_rpg_base.characters;""")
+        self.cursor.execute("""truncate table idle_rpg_base.feedback_messages;""")
         self.commit()
         self.logger.warn("Persist cleared")
 
@@ -182,3 +183,33 @@ class Persist:
                     self.was_error = True
                     character.need_save = True
                     self.logger.error(err)
+
+    def load_messages(self, message_list):
+        self.cursor.execute(
+            """
+            select id, telegram_id, telegram_nickname, message from idle_rpg_base.feedback_messages where not is_read
+            """
+        )
+        for msg_id, telegram_id, telegram_nickname, message in self.cursor:
+            message_list.add_message(telegram_id=telegram_id, telegram_nickname=telegram_nickname, message=message,
+                                     msg_id=msg_id, supress_limit_check=True)
+
+    def save_message(self, message):
+        if message.id is None:
+            self.cursor.execute(
+                """
+                insert into idle_rpg_base.feedback_messages
+                    (telegram_id, telegram_nickname, message)
+                    values(%s, %s, %s) returning id
+                """, (message.telegram_id, message.telegram_nickname, message.message)
+            )
+            message.id = self.cursor.fetchone()[0]
+        else:
+            print(message)
+            print(message.id)
+            self.cursor.execute(
+                """
+                update idle_rpg_base.feedback_messages set is_read = True, dt_read=current_timestamp where id = %s
+                """, (message.id,)
+            )
+        self.commit()

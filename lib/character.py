@@ -194,7 +194,8 @@ class Character:
 
     def fight(self):
         if self.enemy is not None:
-            if self.ai.retreat_hp_threshold >= self.hp_percent or self.enemy.attack >= self.hp:
+            if self.ai.retreat_hp_threshold >= self.hp_percent or (self.hp <= self.enemy.attack - self.defence
+                                                                   < self.max_hp):
                 self.drink_health_potion()
             # check if it is time to run away
             if self.ai.retreat_hp_threshold >= self.hp_percent or self.enemy.attack >= self.hp \

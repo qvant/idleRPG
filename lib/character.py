@@ -1,5 +1,6 @@
 import math
 
+from .ability import ABILITY_TRIGGER_COMBAT_START, ABILITY_TRIGGER_COMBAT_ATTACK, ABILITY_TRIGGER_COMBAT_RECEIVE_DMG
 from .consts import *
 from .event import *
 from .item import Item
@@ -23,6 +24,7 @@ class Character:
         self.base_attack = 0
         self.base_defence = 0
         self.spells = []
+        self.abilities = []
         self.action = ACTION_NONE
         self.town_distance = 0
         self.quest_progress = 0.00
@@ -68,9 +70,19 @@ class Character:
         else:
             item_bonus = 0
         effect_bonus = 0
+        effect_percent = 1
         for i in self.effects:
             effect_bonus += i.attack
-        return self.base_attack + item_bonus + effect_bonus
+            if i.attack_percent != 1:
+                effect_percent += i.attack_percent
+        return round(max((self.base_attack + item_bonus + effect_bonus) * effect_percent, 0))
+
+    @property
+    def die_at(self):
+        effect_bonus = 0
+        for i in self.effects:
+            effect_bonus += i.die_at
+        return effect_bonus
 
     @property
     def defence(self):
@@ -79,9 +91,12 @@ class Character:
         else:
             item_bonus = 0
         effect_bonus = 0
+        effect_percent = 1
         for i in self.effects:
             effect_bonus += i.defence
-        return self.base_defence + item_bonus + effect_bonus
+            if i.defence_percent != 1:
+                effect_percent += i.defence_percent
+        return round((self.base_defence + item_bonus + effect_bonus) * effect_percent)
 
     def apply_effects(self):
         for i in self.effects:
@@ -110,6 +125,8 @@ class Character:
 
     def set_enemy(self, enemy):
         self.enemy = enemy
+        for i in self.abilities:
+            i.trigger(event_type=ABILITY_TRIGGER_COMBAT_START, player=self)
 
     def set_id(self, db_id):
         if self.id is None:
@@ -250,20 +267,22 @@ class Character:
                             self.save_history(
                                 Event(player=self, event_type=EVENT_TYPE_CASTED_SPELL_ON_HIMSELF, spell=spell,
                                       enemy=self.enemy))
-            self.hp -= max(self.enemy.attack - self.defence, 1)
-            if self.hp <= 0:
+            if self.enemy.attack > 0:
+                self.hp -= max(self.enemy.attack - self.defence, 1)
+                for i in self.abilities:
+                    i.trigger(event_type=ABILITY_TRIGGER_COMBAT_RECEIVE_DMG, player=self)
+            if self.hp <= self.die_at:
                 self.die()
             else:
                 if not made_cast:
                     self.enemy.hp -= max(self.attack - self.enemy.defence, 0)
                 if self.enemy.hp <= 0:
-                    self.give_exp(self.enemy.exp)
-                    self.give_gold(self.enemy.gold)
-                    self.monsters_killed += 1
-                    self.save_history(
-                        Event(player=self, event_type=EVENT_TYPE_FOUND_LOOT, enemy=self.enemy, gold=self.enemy.gold,
-                              exp=self.enemy.exp))
-                    self.set_enemy(None)
+                    self.enemy.die()
+                else:
+                    for i in self.abilities:
+                        i.trigger(event_type=ABILITY_TRIGGER_COMBAT_ATTACK, player=self)
+                if self.enemy is not None:
+                    self.enemy.apply_effects()
 
     def set_quest(self, quest):
         self.quest = quest
@@ -354,9 +373,9 @@ class Character:
 
     def __str__(self):
         res = self.trans.get_message(M_CHARACTER_HEADER, self.locale)\
-            .format(self.name, self.trans.get_message(self.class_name, self.locale), self.hp, self.max_hp,
+            .format(self.name, self.trans.get_message(self.class_name, self.locale).lower(), self.hp, self.max_hp,
                     self.mp, self.max_mp, self.exp, self.base_attack, self.attack, self.base_defence, self.defence,
-                    self.level)
+                    self.level, self.die_at)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_LOCATION, self.locale).\
             format(self.trans.get_message(ACTION_NAMES[self.action], self.locale), self.town_distance,
@@ -379,6 +398,18 @@ class Character:
             res += chr(10)
         if first_spell:
             res += self.trans.get_message(M_CHARACTER_HAVE_NO_SPELLS, self.locale)
+        res += chr(10)
+        first_ability = True
+        for i in self.abilities:
+            if first_ability:
+                first_ability = False
+                res += self.trans.get_message(M_CHARACTER_ABILITIES_LIST, self.locale)
+                res += chr(10)
+            res += "  "
+            res += i.translate(self.trans, self.locale)
+            res += chr(10)
+        if first_ability:
+            res += self.trans.get_message(M_CHARACTER_HAVE_NO_ABILITIES, self.locale)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_GOLD_AND_POTIONS, self.locale).format(self.gold, self.health_potions,
                                                                                         self.mana_potions)

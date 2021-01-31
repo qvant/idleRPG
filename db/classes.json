@@ -3,7 +3,19 @@
       "init_hp": 10,
       "init_mp": 0,
       "init_attack": 3,
-      "init_defence": 2
+      "init_defence": 2,
+      "abilities": [
+        {
+          "name": "Second strike", "event": "combat_attack", "action": "Second strike",
+          "description_code": "Second_strike_description", "chance": 0.2
+        },
+        {
+          "name": "Bleed", "event": "combat_attack", "action": "Bleed",
+          "description_code": "Bleed_description", "chance": 0.4,
+          "effect": {"is_positive":  false, "defence": -1, "duration": 10, "damage_per_turn": 3,
+            "level_scale_modifier": 1, "can_stack":  true}
+        }
+      ]
     },
   "Wizard": {"Name":  "Wizard",
       "init_hp": 4,
@@ -66,18 +78,57 @@
       "init_hp": 8,
       "init_mp": 0,
       "init_attack": 10,
-      "init_defence": 0
+      "init_defence": 0,
+      "abilities": [
+        {
+          "name": "Backstab", "event": "combat_start", "action": "backstab",
+          "description_code": "Backstab_description", "chance": 0.2
+        }
+      ]
     },
   "Bulwark": {"Name":  "Bulwark",
       "init_hp": 15,
       "init_mp": 0,
       "init_attack": 2,
-      "init_defence": 9
+      "init_defence": 9,
+      "abilities": [
+        {
+          "name": "Shield slam", "event": "combat_attack", "action": "Shield slam",
+          "description_code": "Shield_slam_description", "chance": 0.2,
+          "effect": {"is_positive": false, "attack_percent": -0.5, "duration": 3, "can_stack":  false}
+        },
+        {
+          "name": "Assault", "event": "combat_attack", "action": "Assault",
+          "description_code": "Assault_description", "chance": 0.3,
+          "effect": {"is_positive": false, "attack_percent": -0.2, "defence_percent": -0.5, "duration": 5,
+            "can_stack":  false}
+        }
+      ]
     },
   "Barbarian": {"Name":  "Barbarian",
       "init_hp": 18,
       "init_mp": 0,
       "init_attack": 7,
-      "init_defence": 0
+      "init_defence": 0,
+    "abilities": [
+        {
+          "name": "Fury", "event": "receive_damage", "action": "JUST_EFFECT",
+          "description_code": "Fury_description", "chance": 0.2,
+          "effect": {"is_positive": true, "die_at": -18, "duration": 10, "can_stack":  false,
+            "level_scale_modifier": 1 }
+        },
+        {
+          "name": "Rage", "event": "receive_damage", "action": "JUST_EFFECT",
+          "description_code": "Rage_description", "chance": 0.3,
+          "effect": {"is_positive": true, "attack_percent": 0.3, "duration": 10,
+            "can_stack":  true}
+        },
+      {
+          "name": "Feel no pain", "event": "receive_damage", "action": "JUST_EFFECT",
+          "description_code": "Feel_no_pain_description", "chance": 0.2,
+          "effect": {"is_positive": true, "defence": 4, "duration": 10,
+            "can_stack":  true, "level_scale_modifier": 1 }
+        }
+      ]
     }
 }

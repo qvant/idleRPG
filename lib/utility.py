@@ -11,7 +11,7 @@ global log_level
 
 
 def check_chance(chance):
-    return random.random() >= chance
+    return random.random() <= chance
 
 
 def get_random_array_element(arr):

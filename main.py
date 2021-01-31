@@ -5,6 +5,7 @@ import json
 import random
 import time
 
+from lib.ability import AbilityType
 from lib.ai import CharAI
 from lib.char_classes import CharClass
 from lib.character import Character
@@ -12,6 +13,7 @@ from lib.config import Config
 from lib.consts import *
 from lib.dictionary import set_class_list, set_ai_list
 from lib.effect import EffectType
+from lib.feedback import MessageList
 from lib.item import Item
 from lib.l18n import Translator
 from lib.quest import Quest
@@ -26,6 +28,7 @@ global player_list
 global class_list
 global monster_list
 global db
+global feedback
 global config
 global start_mode
 global weapon_list
@@ -42,6 +45,7 @@ def init():
     global monster_list
     global class_list
     global db
+    global feedback
     global config
     global start_mode
     global weapon_list
@@ -70,6 +74,8 @@ def init():
     game_log = get_logger(LOG_GAME, config.log_level)
 
     db = Persist(config)
+
+    feedback = MessageList(db=db)
 
     bot_queue = QueueListener(config)
 
@@ -102,11 +108,36 @@ def init():
                                         heal_per_turn=temp_effect.get("heal_per_turn"),
                                         duration=temp_effect["duration"],
                                         level_scale_modifier=temp_effect.get("level_scale_modifier"),
+                                        can_stack=temp_effect.get("can_stack"),
+                                        die_at=temp_effect.get("die_at"),
+                                        attack_percent=temp_effect.get("attack_percent"),
+                                        defence_percent=temp_effect.get("defence_percent"),
                                         )
                 temp_spell = Spell(name=j["name"], cost=j["cost"], min_damage=j["min_damage"],
                                    max_damage=j["max_damage"], is_positive=is_positive, effect=effect)
 
                 temp_class.add_spell(temp_spell)
+        if "abilities" in class_list_j[i].keys():
+            for j in class_list_j[i]["abilities"]:
+                temp_effect = j.get("effect")
+                effect = None
+                if temp_effect is not None:
+                    effect = EffectType(name=j["name"], is_positive=temp_effect["is_positive"],
+                                        attack=temp_effect.get("attack"), defence=temp_effect.get("defence"),
+                                        damage_per_turn=temp_effect.get("damage_per_turn"),
+                                        heal_per_turn=temp_effect.get("heal_per_turn"),
+                                        duration=temp_effect["duration"],
+                                        level_scale_modifier=temp_effect.get("level_scale_modifier"),
+                                        can_stack=temp_effect.get("can_stack"),
+                                        die_at=temp_effect.get("die_at"),
+                                        attack_percent=temp_effect.get("attack_percent"),
+                                        defence_percent=temp_effect.get("defence_percent"),
+                                        )
+                temp_ability = AbilityType(name=j["name"], event=j["event"], action=j["action"],
+                                           description_code=j["description_code"], chance=j["chance"],
+                                           effect=effect)
+
+                temp_class.add_ability(temp_ability)
         class_list.append(temp_class)
     set_class_list(class_list, trans.locales)
 
@@ -164,6 +195,7 @@ def init():
         db.clear_all()
     else:
         player_list = db.load_all_characters(class_list, ai_list[0])
+        feedback.load()
 
 
 def chose_action(player):
@@ -225,11 +257,14 @@ def do_action(player):
 
 def main():
     global db
+    global feedback
     global config
     global bot_queue
     global server
     global trans
     server.set_players(player_list)
+    server.set_hist_len(config.char_history_len)
+    server.set_feedback(feedback)
     bot_queue.set_translator(trans)
     while True:
         turn_start_time = datetime.datetime.now()
@@ -250,7 +285,7 @@ def main():
             player_cnt += 1
             if player_cnt >= config.char_batch_size > 0:
                 player_cnt = 0
-                bot_queue.listen(server, player_list, db)
+                bot_queue.listen(server, player_list, db, feedback)
         server.inc_turns()
         db.commit()
         config.renew_if_needed()
@@ -279,13 +314,13 @@ def main():
                         time.sleep(min((turn_end_time_r - datetime.datetime.now()).seconds,
                                        config.queue_interval_on_sleep))
                         app_log.debug("Wake up to process queue")
-                        bot_queue.listen(server, player_list, db)
+                        bot_queue.listen(server, player_list, db, feedback)
                 else:
                     app_log.debug("Sleep in main cycle")
                     time.sleep((turn_end_time_r - turn_end_time).seconds)
         if server.turn >= config.max_turns > 0 or server.is_shutdown:
             break
-        bot_queue.listen(server, player_list, db)
+        bot_queue.listen(server, player_list, db, feedback)
 
 
 if __name__ == '__main__':

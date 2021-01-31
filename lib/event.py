@@ -17,11 +17,12 @@ EVENT_TYPE_BOUGHT_HEALTH_POTIONS = 14
 EVENT_TYPE_BOUGHT_MANA_POTIONS = 15
 EVENT_TYPE_BOUGHT_EQUIPMENT = 16
 EVENT_TYPE_RESTED = 17
+EVENT_TYPE_USED_ABILITY = 18
 
 
 class Event:
     def __init__(self, event_type, player, enemy=None, hp=None, mp=None, spell=None, damage=None, potion_number=None,
-                 exp=None, gold=None, quest=None, level=None, item=None):
+                 exp=None, gold=None, quest=None, level=None, item=None, ability_type=None):
         self.type = event_type
         self.player = player
         self.enemy = enemy
@@ -35,6 +36,7 @@ class Event:
         self.quest = quest
         self.level = level
         self.item = item
+        self.ability_type = ability_type
 
     def __str__(self):
         if self.type == EVENT_TYPE_RESURRECTED:
@@ -64,15 +66,13 @@ class Event:
                        self.hp)
         elif self.type == EVENT_TYPE_CASTED_SPELL:
             return self.player.trans.get_message(M_CASTED_SPELL, self.player.locale).format(self.player.name,
-                                                                                            self.spell.translate(
-                                                                                                self.player.trans,
-                                                                                                self.player.locale),
-                                                                                            self.enemy, self.damage)
+                                                                                            self.player.trans.get_message(self.spell.name, self.player.locale),
+                                                                                            self.player.trans.get_message(self.enemy.name, self.player.locale), self.damage)
         elif self.type == EVENT_TYPE_CASTED_SPELL_ON_HIMSELF:
             return self.player.trans.get_message(M_CASTED_SPELL_ON_HIMSELF, self.player.locale).\
                 format(self.player.name,
-                       self.spell.translate(self.player.trans, self.player.locale),
-                       self.enemy)
+                       self.player.trans.get_message(self.spell.name, self.player.locale),
+                       self.player.trans.get_message(self.enemy.name, self.player.locale))
         elif self.type == EVENT_TYPE_FOUND_LOOT:
             return self.player.trans.get_message(M_FOUND_LOOT, self.player.locale).\
                 format(self.player.name,
@@ -100,3 +100,17 @@ class Event:
         elif self.type == EVENT_TYPE_RESTED:
             return self.player.trans.get_message(M_RESTED, self.player.locale).format(self.player.name, self.hp,
                                                                                       self.mp)
+        elif self.type == EVENT_TYPE_USED_ABILITY:
+            if self.ability_type.effect is None:
+                return self.player.trans.get_message(M_USED_ABILITY, self.player.locale).\
+                    format(self.player.name,
+                           self.player.trans.get_message(self.ability_type.name, self.player.locale),
+                           self.damage,
+                           self.player.trans.get_message(self.enemy.name, self.player.locale))
+            else:
+                return self.player.trans.get_message(M_USED_ABILITY_STATUS, self.player.locale). \
+                    format(self.player.name,
+                           self.player.trans.get_message(self.ability_type.name, self.player.locale),
+                           self.damage,
+                           self.player.trans.get_message(self.ability_type.name, self.player.locale),
+                           self.player.trans.get_message(self.enemy.name, self.player.locale))

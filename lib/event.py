@@ -66,14 +66,12 @@ class Event:
                        self.hp)
         elif self.type == EVENT_TYPE_CASTED_SPELL:
             return self.player.trans.get_message(M_CASTED_SPELL, self.player.locale).format(self.player.name,
-                                                                                            self.spell.translate(
-                                                                                                self.player.trans,
-                                                                                                self.player.locale),
+                                                                                            self.player.trans.get_message(self.spell.name, self.player.locale),
                                                                                             self.player.trans.get_message(self.enemy.name, self.player.locale), self.damage)
         elif self.type == EVENT_TYPE_CASTED_SPELL_ON_HIMSELF:
             return self.player.trans.get_message(M_CASTED_SPELL_ON_HIMSELF, self.player.locale).\
                 format(self.player.name,
-                       self.spell.translate(self.player.trans, self.player.locale),
+                       self.player.trans.get_message(self.spell.name, self.player.locale),
                        self.player.trans.get_message(self.enemy.name, self.player.locale))
         elif self.type == EVENT_TYPE_FOUND_LOOT:
             return self.player.trans.get_message(M_FOUND_LOOT, self.player.locale).\

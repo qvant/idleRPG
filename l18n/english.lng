@@ -188,5 +188,18 @@
   "Rage": "Rage",
   "Rage_description": "Rage. Damage increased",
   "Feel no pain": "Feel no pain",
-  "Feel_no_pain_description": "Feel no pain. Defence increased"
+  "Feel_no_pain_description": "Feel no pain. Defence increased",
+  "SERVER_UPTIME": "Server started at {0} (uptime {1} second).",
+  "SERVER_CHARACTERS": "Now it runs with {0} characters.",
+  "SERVER_TURNS_PASSED": "{0} turns passed.",
+  "SERVER_FEEDBACK_MESSAGES": "{0} feedback messages to read.",
+  "SERVER_CMD_PROCEED": "Was processed {0} system, {1} user and {2} admin commands.",
+  "SERVER_MEMORY_TOTAL": "Used memory: {0} mb, {1} % from total.",
+  "SERVER_MEMORY_LAST_TURN": "After last turn was used: {0} mb.",
+  "SERVER_MEMORY_STAB": "After stabilizing was used: {0} mb.",
+  "SERVER_MEMORY_FIRST_TURN": "After turn 1 was used: {0} mb.",
+  "SERVER_CPU_TIMES": "CPU times: {0}.",
+  "SERVER_CPU_PERCENT": "CPU percent {0}.",
+  "SERVER_RUNNING": "Server is running.",
+  "SERVER_SHUTTING_DOWN": "Server is shutting down now."
 }

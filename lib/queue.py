@@ -93,7 +93,8 @@ class QueueListener:
                         self.logger.info("For class list request with delivery tag {0} sent response".format(
                             method_frame.delivery_tag, response))
                     elif cmd == CMD_GET_SERVER_STATS:
-                        response = {"server_info": str(server), "cmd_type": CMD_SERVER_STATS,
+                        locale = msg.get("locale")
+                        response = {"server_info": server.translate(locale), "cmd_type": CMD_SERVER_STATS,
                                     "user_id": msg.get("user_id")}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)

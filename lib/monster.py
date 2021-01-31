@@ -89,12 +89,12 @@ class Monster:
     def __str__(self):
         self.trans = self.player.trans
         self.locale = self.player.locale
-        res = "{0} ({6}: {1}, {4}: {7}({2}), {5}: {8}({3})). ".format(
+        res = "{0} ({6}: {1}/{9}, {4}: {7}({2}), {5}: {8}({3})). ".format(
             self.player.trans.get_message(self.name, self.player.locale), self.hp, self.attack, self.defence,
             self.player.trans.get_message(M_ATTACK, self.player.locale).capitalize(),
             self.player.trans.get_message(M_DEFENCE, self.player.locale).capitalize(),
             self.player.trans.get_message(M_HP, self.player.locale).capitalize(),
-            self.base_attack, self.base_defence)
+            self.base_attack, self.base_defence, self.max_hp)
 
         if len(self.effects) > 0:
             res += self.player.trans.get_message(M_CHARACTER_EFFECT_LIST, self.player.locale)

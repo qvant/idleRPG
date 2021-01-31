@@ -1,5 +1,9 @@
 release 4:  
 * added memory and some CPU info into server stats
+* added abilities for all classes which don't have spells
+* fixed some texts
+* added user feedback through telegram bot
+* fixed buf percentage counting
 
 release 3:  
 * added localization (ability to choose language still be in plans). It's a main thing in this version

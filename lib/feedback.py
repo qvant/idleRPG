@@ -30,14 +30,12 @@ class MessageList:
             self.messages[telegram_id] = [msg]
         self.messages_by_id[msg.id] = msg
 
-    def read_message(self, id_msg):
-        msg = self.messages_by_id.get(id_msg)
-        print(msg)
-        print(id_msg)
+    def read_message(self, msg_id, user_id):
+        msg = self.messages_by_id.get(msg_id)
         if msg is not None:
-            self.db.save_message(msg)
+            self.db.save_message(msg, user_id)
             self.messages[msg.telegram_id].remove(msg)
-            del self.messages_by_id[id_msg]
+            del self.messages_by_id[msg_id]
 
     def get_message(self):
         for i in self.messages_by_id:

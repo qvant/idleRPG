@@ -6,7 +6,8 @@ create table idle_rpg_base.feedback_messages
 	dt_sent timestamp with time zone default CURRENT_TIMESTAMP,
 	is_read	boolean default false,
 	dt_read timestamp with time zone,
-	message text
+	message text,
+	read_by integer
 );
 ALTER TABLE idle_rpg_base.feedback_messages
   OWNER TO idle_rpg_user;

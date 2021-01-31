@@ -194,7 +194,7 @@ class Persist:
             message_list.add_message(telegram_id=telegram_id, telegram_nickname=telegram_nickname, message=message,
                                      msg_id=msg_id, supress_limit_check=True)
 
-    def save_message(self, message):
+    def save_message(self, message, user_id=None):
         if message.id is None:
             self.cursor.execute(
                 """
@@ -205,11 +205,13 @@ class Persist:
             )
             message.id = self.cursor.fetchone()[0]
         else:
-            print(message)
-            print(message.id)
             self.cursor.execute(
                 """
-                update idle_rpg_base.feedback_messages set is_read = True, dt_read=current_timestamp where id = %s
-                """, (message.id,)
+                update idle_rpg_base.feedback_messages 
+                    set is_read = True, 
+                        dt_read=current_timestamp,
+                        read_by = %s 
+                    where id = %s
+                """, (user_id, message.id,)
             )
         self.commit()

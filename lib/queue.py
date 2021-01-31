@@ -132,7 +132,8 @@ class QueueListener:
                         self.logger.info("Received send feedback message, sent response")
                     elif cmd == CMD_CONFIRM_FEEDBACK:
                         feed_id = msg.get("message_id")
-                        server.feedback.read_message(feed_id)
+                        telegram_id = msg.get("user_id")
+                        server.feedback.read_message(feed_id, telegram_id)
                         response = {"cmd_type": CMD_SERVER_OK,
                                     "user_id": msg.get("user_id"), "message": "Was confirmed {0}".format(feed_id)}
                         response = json.dumps(response)

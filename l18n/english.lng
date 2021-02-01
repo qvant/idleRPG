@@ -201,5 +201,7 @@
   "SERVER_CPU_TIMES": "CPU times: {0}.",
   "SERVER_CPU_PERCENT": "CPU percent {0}.",
   "SERVER_RUNNING": "Server is running.",
-  "SERVER_SHUTTING_DOWN": "Server is shutting down now."
+  "SERVER_SHUTTING_DOWN": "Server is shutting down now.",
+  "NO_FEEDBACK": "Feedback inbox is empty",
+  "FEEDBACK_CONFIRMED": "Was confirmed message with id {0}."
 }

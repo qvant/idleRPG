@@ -20,6 +20,9 @@ class Server:
         self.feedback = None
         self._trans = None
 
+    def trans_message(self, message, code):
+        return self._trans.get_message(message, code)
+
     @property
     def uptime(self):
         return datetime.datetime.now().replace(microsecond=0) - self.startup

@@ -101,8 +101,10 @@ class QueueListener:
                         self.logger.info("For server stats request with delivery tag {0} sent response {1}".format(
                             method_frame.delivery_tag, response))
                     elif cmd == CMD_SERVER_SHUTDOWN_IMMEDIATE:
+                        locale = msg.get("locale")
                         response = {"cmd_type": CMD_SERVER_OK,
-                                    "user_id": msg.get("user_id")}
+                                    "user_id": msg.get("user_id"),
+                                    "message": server.trans_message(M_SERVER_SHUTTING_DOWN, locale)}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.channel.cancel()
@@ -111,8 +113,10 @@ class QueueListener:
                         self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
                         sys.exit(0)
                     elif cmd == CMD_SERVER_SHUTDOWN_NORMAL:
+                        locale = msg.get("locale")
                         response = {"cmd_type": CMD_SERVER_OK,
-                                    "user_id": msg.get("user_id")}
+                                    "user_id": msg.get("user_id"),
+                                    "message": server.trans_message(M_SERVER_SHUTTING_DOWN, locale)}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.channel.cancel()
@@ -126,17 +130,21 @@ class QueueListener:
                                         "user_sent_id": feed.telegram_id, "user_sent_nick": feed.telegram_nickname,
                                         "message_id": feed.id}
                         else:
+                            locale = msg.get("locale")
                             response = {"cmd_type": CMD_SERVER_OK,
-                                        "user_id": msg.get("user_id"), "message": "Feedback inbox is empty"}
+                                        "user_id": msg.get("user_id"),
+                                        "message": server.trans_message(M_NO_FEEDBACK, locale)}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.logger.info("Received send feedback message, sent response")
                     elif cmd == CMD_CONFIRM_FEEDBACK:
+                        locale = msg.get("locale")
                         feed_id = msg.get("message_id")
                         telegram_id = msg.get("user_id")
                         server.feedback.read_message(feed_id, telegram_id)
                         response = {"cmd_type": CMD_SERVER_OK,
-                                    "user_id": msg.get("user_id"), "message": "Was confirmed {0}".format(feed_id)}
+                                    "user_id": msg.get("user_id"),
+                                    "message": server.trans_message(M_FEEDBACK_CONFIRMED, locale).format(feed_id)}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.logger.info("Received send feedback message, sent response")

@@ -4,6 +4,11 @@ import os
 
 DEFAULT_LOCALE = 'english'
 
+FORM_NOMINATIVE = 1
+FORM_GENITIVE = 2  # Родительный падеж
+FORM_ABLATIVE = 3  # Творительный падеж
+FORM_DEFAULT = 0
+
 
 # TODO: replace for gettext
 class L18n:
@@ -26,11 +31,22 @@ class L18n:
             self.alternative = L18n()
             self.alternative.set_locale(DEFAULT_LOCALE)
 
-    def get_message(self, msg_type):
+    def get_message(self, msg_type, word_form=None):
         if msg_type in self.msg_map.keys():
             msg = self.msg_map[msg_type]
+            if isinstance(msg, dict):
+                if word_form == FORM_NOMINATIVE or word_form == FORM_DEFAULT:
+                    msg = msg.get("nominative")
+                elif word_form == FORM_GENITIVE:
+                    msg = msg.get("genitive")
+                elif word_form == FORM_ABLATIVE:
+                    msg = msg.get("ablative")
+                if len(msg) == 0:
+                    raise KeyError(
+                        "Can't find message {} in locale {} (default locale {} with form {} )".
+                            format(msg_type, self.locale, DEFAULT_LOCALE, word_form))
         elif self.locale != DEFAULT_LOCALE:
-            msg = self.alternative.get_message(msg_type)
+            msg = self.alternative.get_message(msg_type, word_form)
         else:
             raise KeyError("Can't find message {} in locale {} (default locale {})".format(msg_type, self.locale,
                                                                                            DEFAULT_LOCALE))
@@ -55,8 +71,15 @@ class Translator:
         else:
             self.active_translator = self.default_translator
 
-    def get_message(self, msg_type, code):
+    def get_message(self, msg_type, code, is_nominative=False, is_genitive=False, is_ablative=False):
+        word_form = FORM_DEFAULT
+        if is_nominative:
+            word_form = FORM_NOMINATIVE
+        elif is_genitive:
+            word_form = FORM_GENITIVE
+        elif is_ablative:
+            word_form = FORM_ABLATIVE
         if code in self.locales.keys():
-            return self.locales[code].get_message(msg_type)
+            return self.locales[code].get_message(msg_type, word_form)
         else:
-            return self.default_translator.get_message(msg_type)
+            return self.default_translator.get_message(msg_type, word_form)

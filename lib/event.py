@@ -57,26 +57,27 @@ class Event:
             return self.player.trans.get_message(M_RUN_AWAY, self.player.locale).format(self.player.name,
                                                                                         self.player.trans.get_message(
                                                                                             self.enemy.name,
-                                                                                            self.player.locale),
+                                                                                            self.player.locale,
+                                                                                            is_genitive=True),
                                                                                         self.hp)
         elif self.type == EVENT_TYPE_RUN_AWAY_FAILED:
             return self.player.trans.get_message(M_RUN_AWAY_FAILED, self.player.locale).\
                 format(self.player.name,
-                       self.player.trans.get_message(self.enemy.name, self.player.locale),
+                       self.player.trans.get_message(self.enemy.name, self.player.locale, is_genitive=True),
                        self.hp)
         elif self.type == EVENT_TYPE_CASTED_SPELL:
             return self.player.trans.get_message(M_CASTED_SPELL, self.player.locale).format(self.player.name,
                                                                                             self.player.trans.get_message(self.spell.name, self.player.locale),
-                                                                                            self.player.trans.get_message(self.enemy.name, self.player.locale), self.damage)
+                                                                                            self.player.trans.get_message(self.enemy.name, self.player.locale, is_genitive=True), self.damage)
         elif self.type == EVENT_TYPE_CASTED_SPELL_ON_HIMSELF:
             return self.player.trans.get_message(M_CASTED_SPELL_ON_HIMSELF, self.player.locale).\
                 format(self.player.name,
                        self.player.trans.get_message(self.spell.name, self.player.locale),
-                       self.player.trans.get_message(self.enemy.name, self.player.locale))
+                       self.player.trans.get_message(self.enemy.name, self.player.locale, is_ablative=True))
         elif self.type == EVENT_TYPE_FOUND_LOOT:
             return self.player.trans.get_message(M_FOUND_LOOT, self.player.locale).\
                 format(self.player.name,
-                       self.player.trans.get_message(self.enemy.name, self.player.locale),
+                       self.player.trans.get_message(self.enemy.name, self.player.locale, is_genitive=True),
                        self.gold,
                        self.exp)
         elif self.type == EVENT_TYPE_ACCEPTED_QUEST:

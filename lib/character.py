@@ -432,7 +432,8 @@ class Character:
             res += str(i)
             res += chr(10)
         if self.enemy is not None and not self.dead:
-            res += chr(10) + self.trans.get_message(M_CHARACTER_ENEMY, self.locale).format(self.enemy)
+            res += chr(10) + self.trans.get_message(M_CHARACTER_ENEMY,
+                                                    self.locale).format(self.enemy.translate(is_ablative=True))
         if self.dead:
             res += chr(10) + self.trans.get_message(M_CHARACTER_RESURRECT_TIMER, self.locale).format(self.wait_counter)
         return res

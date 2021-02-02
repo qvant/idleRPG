@@ -413,7 +413,11 @@ class Character:
             res += self.trans.get_message(M_CHARACTER_HAVE_NO_ABILITIES, self.locale)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_GOLD_AND_POTIONS, self.locale).format(self.gold, self.health_potions,
-                                                                                        self.mana_potions)
+                                                                                        self.mana_potions,
+                                                                                        self.trans.get_message(M_GP, self.locale, connected_number=self.gold),
+                                                                                        self.trans.get_message(M_POTION, self.locale, connected_number=self.health_potions),
+                                                                                        self.trans.get_message(M_POTION, self.locale, connected_number=self.mana_potions),
+                                                                                        )
         if len(self.effects) > 0:
             res += chr(10)
             res += chr(10)

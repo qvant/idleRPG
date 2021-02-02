@@ -35,6 +35,8 @@ class Monster:
         self.level = level
         self.level_applied = False
         self.player = player
+        self.trans = player.trans
+        self.locale = player.locale
         self.effects = []
 
     @property

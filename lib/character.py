@@ -384,9 +384,9 @@ class Character:
         res += chr(10)
         res += chr(10)
         if self.weapon is not None:
-            res += self.trans.get_message(M_CHARACTER_WEAPON, self.locale).format(self.weapon)
+            res += self.trans.get_message(M_CHARACTER_WEAPON, self.locale).format(self.weapon.translate(is_ablative=True))
         if self.armor is not None:
-            res += self.trans.get_message(M_CHARACTER_ARMOR, self.locale).format(self.armor)
+            res += self.trans.get_message(M_CHARACTER_ARMOR, self.locale).format(self.armor.translate(is_accusative=True))
         res += chr(10)
         first_spell = True
         for i in self.spells:

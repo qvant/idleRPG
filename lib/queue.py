@@ -40,8 +40,11 @@ class QueueListener:
         self.port = config.queue_port
         self.batch_size = config.queue_batch_size
         if reload and self.channel is not None:
-            self.channel.close()
-            self.queue.close()
+            try:
+                self.channel.close()
+                self.queue.close()
+            except pika.exceptions.AMQPError as exc:
+                self.logger.critical(exc)
         else:
             self.queue = None
             self.channel = None

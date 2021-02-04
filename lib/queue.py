@@ -8,7 +8,8 @@ from .character import Character
 from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CLASS_LIST, CMD_CREATE_CHARACTER, \
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
-    CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK
+    CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK,\
+    CMD_SET_CLASS_DESCRIPTION
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
 from .messages import *
 from .utility import get_logger
@@ -90,6 +91,16 @@ class QueueListener:
                         response = {"class_list": class_list, "cmd_type": CMD_SET_CLASS_LIST}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
+                        for i in class_list:
+                            for j in server.get_locales():
+
+                                response = {"class_name": i, "cmd_type": CMD_SET_CLASS_DESCRIPTION,
+                                            "class_description": server.trans_message(i + "_description", j),
+                                            "class_stats": get_class(i).translate(server._trans, j),
+                                            "locale": j
+                                            }
+                                response = json.dumps(response)
+                                self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.logger.info("For class list request with delivery tag {0} sent response".format(
                             method_frame.delivery_tag, response))
                     elif cmd == CMD_GET_SERVER_STATS:

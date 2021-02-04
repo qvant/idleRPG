@@ -208,5 +208,14 @@
   "FEEDBACK_CONFIRMED": "Was confirmed message with id {0}.",
   "GP": "gold",
   "POTION": {"nominative":  "potion", "few": "potions","many": "potions"},
-  "POINT": {"nominative":  "point", "few": "points", "many": "points"}
+  "POINT": {"nominative":  "point", "few": "points", "many": "points"},
+  "Fighter_description": "Noble warrior, master of fencing, who live for combat and glory.",
+  "Wizard_description": "Smart wizard, master of arcane arts in his quest for knowledge.",
+  "Druid_description": "Calm druid, keeper of nature, friend of animals.",
+  "Monk_description": "Brave monk, master of martial arts.",
+  "Cleric_description": "Wise cleric, favorite of God.",
+  "Thief_description": "Just shady and coward person.",
+  "Bulwark_description": "Mighty bulwark, living wall of steel.",
+  "Barbarian_description": "Barbarian, wild child of North.",
+  "CLASS_HEADER": "{0} has following attributes attack: {1}, defence {2}, health {3}, mana {4} per level."
 }

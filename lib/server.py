@@ -23,6 +23,9 @@ class Server:
     def trans_message(self, message, code):
         return self._trans.get_message(message, code)
 
+    def get_locales(self):
+        return self._trans.locales.keys()
+
     @property
     def uptime(self):
         return datetime.datetime.now().replace(microsecond=0) - self.startup

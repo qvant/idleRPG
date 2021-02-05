@@ -136,7 +136,8 @@ class Persist:
                             %s, %s, %s, %s,
                             %s, %s, %s,
                             %s, %s, %s, 
-                            %s, %s, %s);
+                            %s, %s, %s) 
+                 returning id;
                  """,
                                         (character.name, character.class_name, character.level, character.exp,
                                          character.hp,
@@ -147,9 +148,7 @@ class Persist:
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,
                                          armor_level, character.telegram_id))
-                    self.cursor.execute("""select id from idle_rpg_base.characters where name = %s;""",
-                                        (character.name,))
-                    character.id, = self.cursor.fetchone()
+                    character.id = self.cursor.fetchone()[0]
 
                 else:
                     self.cursor.execute("""

@@ -26,8 +26,16 @@ class Item:
         if self.owner is None:
             return self._name
         else:
-            return "{0} {1} {2}".format(self.owner.trans.get_message(self.affix, self.owner.locale),
+            return "{0} {1} {2}".format(self.owner.trans.get_message(self.affix, self.owner.locale, connected_word=self.type),
                                         self.owner.trans.get_message(self.type, self.owner.locale),
+                                        self.owner.trans.get_message(self.suffix, self.owner.locale))
+
+    def name_in_form(self, is_ablative=False, is_accusative=False):
+        if self.owner is None:
+            return self._name
+        else:
+            return "{0} {1} {2}".format(self.owner.trans.get_message(self.affix, self.owner.locale, connected_word=self.type, is_ablative=is_ablative, is_accusative=is_accusative),
+                                        self.owner.trans.get_message(self.type, self.owner.locale, is_ablative=is_ablative, is_accusative=is_accusative),
                                         self.owner.trans.get_message(self.suffix, self.owner.locale))
 
     @property
@@ -103,6 +111,9 @@ class Item:
             owner.weapon = self
         elif self.slot == ITEM_SLOT_ARMOR:
             owner.armor = self
+
+    def translate(self, is_ablative=False, is_accusative=False):
+        return "{0} + {1}".format(self.name_in_form(is_ablative=is_ablative, is_accusative=is_accusative), self.level)
 
     def __str__(self):
         return "{0} + {1}".format(self.name, self.level)

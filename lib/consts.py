@@ -19,6 +19,7 @@ MANA_POTION_PRICE = 12
 ACTIONS = [ACTION_NONE, ACTION_RETREAT, ACTION_QUEST, ACTION_DEAD, ACTION_SHOP]
 ACTION_NAMES = ["unknown", "retreating", "questing", "dead", "do shopping"]
 
+CMD_SET_CLASS_DESCRIPTION = "set_class_description"
 CMD_SET_CLASS_LIST = "set_class_list"
 CMD_GET_CLASS_LIST = "get_class_list"
 CMD_GET_SERVER_STATS = "get_server_stats"

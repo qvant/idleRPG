@@ -11,7 +11,9 @@ class Quest:
         self.verb = self.quest_verbs[round(random.random() * len(self.quest_verbs)) - 1]
         self.adjective = self.quest_adjectives[round(random.random() * len(self.quest_adjectives)) - 1]
         self.noun = self.quest_nouns[round(random.random() * len(self.quest_nouns)) - 1]
-        self.number = round(random.random() * self.quest_max_target) + 1
+        self.number = round(random.random() * self.quest_max_target)
+        # Just to not add different word forms for different numbers
+        self.number += 5
         self.owner = owner
         self.owner.set_quest(self)
 

@@ -194,7 +194,8 @@ class Character:
 
     def fight(self):
         if self.enemy is not None:
-            if self.ai.retreat_hp_threshold >= self.hp_percent or self.enemy.attack >= self.hp:
+            if self.ai.retreat_hp_threshold >= self.hp_percent or (self.hp <= self.enemy.attack - self.defence
+                                                                   < self.max_hp):
                 self.drink_health_potion()
             # check if it is time to run away
             if self.ai.retreat_hp_threshold >= self.hp_percent or self.enemy.attack >= self.hp \
@@ -383,9 +384,9 @@ class Character:
         res += chr(10)
         res += chr(10)
         if self.weapon is not None:
-            res += self.trans.get_message(M_CHARACTER_WEAPON, self.locale).format(self.weapon)
+            res += self.trans.get_message(M_CHARACTER_WEAPON, self.locale).format(self.weapon.translate(is_ablative=True))
         if self.armor is not None:
-            res += self.trans.get_message(M_CHARACTER_ARMOR, self.locale).format(self.armor)
+            res += self.trans.get_message(M_CHARACTER_ARMOR, self.locale).format(self.armor.translate(is_accusative=True))
         res += chr(10)
         first_spell = True
         for i in self.spells:
@@ -412,7 +413,11 @@ class Character:
             res += self.trans.get_message(M_CHARACTER_HAVE_NO_ABILITIES, self.locale)
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_GOLD_AND_POTIONS, self.locale).format(self.gold, self.health_potions,
-                                                                                        self.mana_potions)
+                                                                                        self.mana_potions,
+                                                                                        self.trans.get_message(M_GP, self.locale, connected_number=self.gold),
+                                                                                        self.trans.get_message(M_POTION, self.locale, connected_number=self.health_potions),
+                                                                                        self.trans.get_message(M_POTION, self.locale, connected_number=self.mana_potions),
+                                                                                        )
         if len(self.effects) > 0:
             res += chr(10)
             res += chr(10)
@@ -431,7 +436,8 @@ class Character:
             res += str(i)
             res += chr(10)
         if self.enemy is not None and not self.dead:
-            res += chr(10) + self.trans.get_message(M_CHARACTER_ENEMY, self.locale).format(self.enemy)
+            res += chr(10) + self.trans.get_message(M_CHARACTER_ENEMY,
+                                                    self.locale).format(self.enemy.translate(is_ablative=True))
         if self.dead:
             res += chr(10) + self.trans.get_message(M_CHARACTER_RESURRECT_TIMER, self.locale).format(self.wait_counter)
         return res

@@ -1,6 +1,7 @@
 import datetime
 import os
 import psutil
+from .messages import *
 
 
 class Server:
@@ -17,6 +18,13 @@ class Server:
         self.memory_after_turn_last = None
         self.history_length = None
         self.feedback = None
+        self._trans = None
+
+    def trans_message(self, message, code):
+        return self._trans.get_message(message, code)
+
+    def get_locales(self):
+        return self._trans.locales.keys()
 
     @property
     def uptime(self):
@@ -29,6 +37,9 @@ class Server:
             self.memory_after_turn_max_hist = self.get_memory_usage()
         self.memory_after_turn_last = self.get_memory_usage()
         self.turn += 1
+
+    def set_translator(self, locales):
+        self._trans = locales
 
     def inc_sys_cmd(self, cmd):
         self.sys_commands_proceed += cmd
@@ -71,32 +82,31 @@ class Server:
         process = psutil.Process(os.getpid())
         return str(process.cpu_percent())
 
-    def __str__(self):
-        res = "Server started at {0} (uptime {1} second).".format(self.startup,
-                                                                  self.uptime) + chr(10)
-        res += "Now it runs with {0} characters".format(len(self.players)) + chr(10)
-        res += "{0} turns passed".format(self.turn) + chr(10)
-        res += "{0} feedback messages to read".format(self.feedback.get_message_number()) + chr(10)
-        res += "Was processed {0} system, {1} user and {2} admin commands".\
+    def translate(self, code):
+        res = self._trans.get_message(M_SERVER_UPTIME, code).format(self.startup, self.uptime) + chr(10)
+        res += self._trans.get_message(M_SERVER_CHARACTERS, code).format(len(self.players)) + chr(10)
+        res += self._trans.get_message(M_SERVER_TURNS_PASSED, code).format(self.turn) + chr(10)
+        res += self._trans.get_message(M_SERVER_FEEDBACK_MESSAGES, code).format(self.feedback.get_message_number()) + chr(10)
+        res += self._trans.get_message(M_SERVER_CMD_PROCEED, code).\
             format(self.sys_commands_proceed, self.user_commands_proceed, self.admin_commands_proceed) + chr(10)
         res += chr(10)
-        res += "Used memory: {0} mb, {1} % from total".format(self.get_memory_usage(), self.get_memory_percent())
+        res += self._trans.get_message(M_SERVER_MEMORY_TOTAL, code).format(self.get_memory_usage(), self.get_memory_percent())
         res += chr(10)
         if self.memory_after_turn_last is not None:
-            res += "After last turn was used: {0}".format(self.memory_after_turn_last)
+            res += self._trans.get_message(M_SERVER_MEMORY_LAST_TURN, code).format(self.memory_after_turn_last)
             res += chr(10)
         if self.memory_after_turn_max_hist is not None:
-            res += "After stabilizing was used: {0}".format(self.memory_after_turn_max_hist)
+            res += self._trans.get_message(M_SERVER_MEMORY_STAB, code).format(self.memory_after_turn_max_hist)
             res += chr(10)
         if self.memory_after_turn_1 is not None:
-            res += "After turn 1 was used: {0}".format(self.memory_after_turn_1)
+            res += self._trans.get_message(M_SERVER_MEMORY_FIRST_TURN, code).format(self.memory_after_turn_1)
             res += chr(10)
-        res += "CPU times: {0}".format(self.get_cpu_times())
+        res += self._trans.get_message(M_SERVER_CPU_TIMES, code).format(self.get_cpu_times())
         res += chr(10)
-        res += "CPU percent {0}".format(self.get_cpu_percent())
+        res += self._trans.get_message(M_SERVER_CPU_PERCENT, code).format(self.get_cpu_percent())
         res += chr(10)
         if self.is_shutdown:
-            res += "Server is shutting down now."
+            res += self._trans.get_message(M_SERVER_SHUTTING_DOWN, code)
         else:
-            res += "Server is running."
+            res += self._trans.get_message(M_SERVER_RUNNING, code)
         return res

@@ -1,3 +1,11 @@
+release 5:  
+* translated admin messages
+* added descriptions for classes
+* improved russian translation
+* fixed potion overusing
+* small improvement in work with db
+* handled some queue exceptions
+
 release 4:  
 * added memory and some CPU info into server stats
 * added abilities for all classes which don't have spells

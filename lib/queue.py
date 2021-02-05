@@ -8,7 +8,8 @@ from .character import Character
 from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CLASS_LIST, CMD_CREATE_CHARACTER, \
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
-    CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK
+    CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK,\
+    CMD_SET_CLASS_DESCRIPTION
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
 from .messages import *
 from .utility import get_logger
@@ -39,8 +40,11 @@ class QueueListener:
         self.port = config.queue_port
         self.batch_size = config.queue_batch_size
         if reload and self.channel is not None:
-            self.channel.close()
-            self.queue.close()
+            try:
+                self.channel.close()
+                self.queue.close()
+            except pika.exceptions.AMQPError as exc:
+                self.logger.critical(exc)
         else:
             self.queue = None
             self.channel = None
@@ -90,18 +94,31 @@ class QueueListener:
                         response = {"class_list": class_list, "cmd_type": CMD_SET_CLASS_LIST}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
+                        for i in class_list:
+                            for j in server.get_locales():
+
+                                response = {"class_name": i, "cmd_type": CMD_SET_CLASS_DESCRIPTION,
+                                            "class_description": server.trans_message(i + "_description", j),
+                                            "class_stats": get_class(i).translate(server._trans, j),
+                                            "locale": j
+                                            }
+                                response = json.dumps(response)
+                                self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.logger.info("For class list request with delivery tag {0} sent response".format(
                             method_frame.delivery_tag, response))
                     elif cmd == CMD_GET_SERVER_STATS:
-                        response = {"server_info": str(server), "cmd_type": CMD_SERVER_STATS,
+                        locale = msg.get("locale")
+                        response = {"server_info": server.translate(locale), "cmd_type": CMD_SERVER_STATS,
                                     "user_id": msg.get("user_id")}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.logger.info("For server stats request with delivery tag {0} sent response {1}".format(
                             method_frame.delivery_tag, response))
                     elif cmd == CMD_SERVER_SHUTDOWN_IMMEDIATE:
+                        locale = msg.get("locale")
                         response = {"cmd_type": CMD_SERVER_OK,
-                                    "user_id": msg.get("user_id")}
+                                    "user_id": msg.get("user_id"),
+                                    "message": server.trans_message(M_SERVER_SHUTTING_DOWN, locale)}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.channel.cancel()
@@ -110,8 +127,10 @@ class QueueListener:
                         self.logger.info("Message with delivery tag {0} acknowledged".format(method_frame.delivery_tag))
                         sys.exit(0)
                     elif cmd == CMD_SERVER_SHUTDOWN_NORMAL:
+                        locale = msg.get("locale")
                         response = {"cmd_type": CMD_SERVER_OK,
-                                    "user_id": msg.get("user_id")}
+                                    "user_id": msg.get("user_id"),
+                                    "message": server.trans_message(M_SERVER_SHUTTING_DOWN, locale)}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.channel.cancel()
@@ -125,17 +144,21 @@ class QueueListener:
                                         "user_sent_id": feed.telegram_id, "user_sent_nick": feed.telegram_nickname,
                                         "message_id": feed.id}
                         else:
+                            locale = msg.get("locale")
                             response = {"cmd_type": CMD_SERVER_OK,
-                                        "user_id": msg.get("user_id"), "message": "Feedback inbox is empty"}
+                                        "user_id": msg.get("user_id"),
+                                        "message": server.trans_message(M_NO_FEEDBACK, locale)}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.logger.info("Received send feedback message, sent response")
                     elif cmd == CMD_CONFIRM_FEEDBACK:
+                        locale = msg.get("locale")
                         feed_id = msg.get("message_id")
                         telegram_id = msg.get("user_id")
                         server.feedback.read_message(feed_id, telegram_id)
                         response = {"cmd_type": CMD_SERVER_OK,
-                                    "user_id": msg.get("user_id"), "message": "Was confirmed {0}".format(feed_id)}
+                                    "user_id": msg.get("user_id"),
+                                    "message": server.trans_message(M_FEEDBACK_CONFIRMED, locale).format(feed_id)}
                         response = json.dumps(response)
                         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
                         self.logger.info("Received send feedback message, sent response")

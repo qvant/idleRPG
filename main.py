@@ -140,6 +140,7 @@ def init():
                 temp_class.add_ability(temp_ability)
         class_list.append(temp_class)
     set_class_list(class_list, trans.locales)
+    server.set_translator(trans)
 
     f = "db//ai.json"
     fp = codecs.open(f, 'r', "utf-8")

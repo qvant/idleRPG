@@ -124,11 +124,11 @@ class Event:
                     format(self.player.name,
                            self.player.trans.get_message(self.ability_type.name, self.player.locale),
                            self.damage,
-                           self.player.trans.get_message(self.enemy.name, self.player.locale))
+                           self.player.trans.get_message(self.enemy.name, self.player.locale, is_dative=True))
             else:
                 return self.player.trans.get_message(M_USED_ABILITY_STATUS, self.player.locale). \
                     format(self.player.name,
                            self.player.trans.get_message(self.ability_type.name, self.player.locale),
                            self.damage,
                            self.player.trans.get_message(self.ability_type.name, self.player.locale),
-                           self.player.trans.get_message(self.enemy.name, self.player.locale))
+                           self.player.trans.get_message(self.enemy.name, self.player.locale, is_dative=True))

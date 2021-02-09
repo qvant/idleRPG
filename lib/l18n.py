@@ -5,6 +5,7 @@ import re
 
 DEFAULT_LOCALE = 'english'
 
+FORM_DEFAULT = 0
 FORM_NOMINATIVE = 1
 FORM_GENITIVE = 2  # Родительный падеж
 FORM_ACCUSATIVE = 3  # Винительный падеж
@@ -18,7 +19,7 @@ FORM_FEMININE_AC = 10  # женский род винительный падеж
 FORM_NEUTER = 11  # срединий род
 FORM_NEUTER_A = 12  # средний род творительный падеж
 FORM_NEUTER_AC = 13  # средний род винительный падеж
-FORM_DEFAULT = 14
+FORM_DATIVE = 14  # Дательный падеж
 
 MS_NUMBER_SINGLE_RULE = "NUMBER_SINGLE_RULE"
 MS_NUMBER_FEW_RULE = "NUMBER_FEW_RULE"
@@ -62,6 +63,8 @@ class L18n:
                     msg = msg.get("ablative")
                 elif word_form == FORM_ACCUSATIVE:
                     msg = msg.get("accusative")
+                elif word_form == FORM_DATIVE:
+                    msg = msg.get("dative")
                 elif word_form == FORM_MULTIPLE:
                     msg = msg.get("many")
                 elif word_form == FORM_FEW:
@@ -135,7 +138,7 @@ class Translator:
             self.active_translator = self.default_translator
 
     def get_message(self, msg_type, code, is_nominative=False, is_genitive=False, is_ablative=False, is_accusative=False,
-                    connected_number=None, connected_word=None):
+                    connected_number=None, connected_word=None, is_dative=False):
         if code in self.locales.keys():
             locale = self.locales[code]
         else:
@@ -163,6 +166,8 @@ class Translator:
             word_form = FORM_ABLATIVE
         elif is_accusative:
             word_form = FORM_ACCUSATIVE
+        elif is_dative:
+            word_form = FORM_DATIVE
         elif connected_number is not None:
             if locale.single_rule.search(str(connected_number)):
                 word_form = FORM_SINGLE

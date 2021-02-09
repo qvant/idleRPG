@@ -26,7 +26,8 @@ class Item:
         if self.owner is None:
             return self._name
         else:
-            return "{0} {1} {2}".format(self.owner.trans.get_message(self.affix, self.owner.locale, connected_word=self.type),
+            return "{0} {1} {2}".format(self.owner.trans.get_message(self.affix, self.owner.locale,
+                                                                     connected_word=self.type),
                                         self.owner.trans.get_message(self.type, self.owner.locale),
                                         self.owner.trans.get_message(self.suffix, self.owner.locale))
 
@@ -34,8 +35,12 @@ class Item:
         if self.owner is None:
             return self._name
         else:
-            return "{0} {1} {2}".format(self.owner.trans.get_message(self.affix, self.owner.locale, connected_word=self.type, is_ablative=is_ablative, is_accusative=is_accusative),
-                                        self.owner.trans.get_message(self.type, self.owner.locale, is_ablative=is_ablative, is_accusative=is_accusative),
+            return "{0} {1} {2}".format(self.owner.trans.get_message(self.affix, self.owner.locale,
+                                                                     connected_word=self.type, is_ablative=is_ablative,
+                                                                     is_accusative=is_accusative),
+                                        self.owner.trans.get_message(self.type, self.owner.locale,
+                                                                     is_ablative=is_ablative,
+                                                                     is_accusative=is_accusative),
                                         self.owner.trans.get_message(self.suffix, self.owner.locale))
 
     @property

@@ -42,7 +42,7 @@ class Event:
         if self.type == EVENT_TYPE_RESURRECTED:
             return self.player.trans.get_message(M_RESURRECTED, self.player.locale).format(self.player.name)
         elif self.type == EVENT_TYPE_KILLED:
-            return self.player.trans.get_message(M_KILLED_BY_ENEMY, self.player.locale).\
+            return self.player.trans.get_message(M_KILLED_BY_ENEMY, self.player.locale). \
                 format(self.player.name,
                        self.player.trans.get_message(self.enemy.name, self.player.locale, is_ablative=True))
         elif self.type == EVENT_TYPE_DIED:
@@ -61,21 +61,25 @@ class Event:
                                                                                             is_genitive=True),
                                                                                         self.hp)
         elif self.type == EVENT_TYPE_RUN_AWAY_FAILED:
-            return self.player.trans.get_message(M_RUN_AWAY_FAILED, self.player.locale).\
+            return self.player.trans.get_message(M_RUN_AWAY_FAILED, self.player.locale). \
                 format(self.player.name,
                        self.player.trans.get_message(self.enemy.name, self.player.locale, is_genitive=True),
                        self.hp)
         elif self.type == EVENT_TYPE_CASTED_SPELL:
-            return self.player.trans.get_message(M_CASTED_SPELL, self.player.locale).format(self.player.name,
-                                                                                            self.player.trans.get_message(self.spell.name, self.player.locale),
-                                                                                            self.player.trans.get_message(self.enemy.name, self.player.locale, is_genitive=True), self.damage)
+            return self.player.trans.get_message(M_CASTED_SPELL,
+                                                 self.player.locale).format(self.player.name,
+                                                                            self.player.trans.get_message(
+                                                                                self.spell.name, self.player.locale),
+                                                                            self.player.trans.get_message(
+                                                                                self.enemy.name, self.player.locale,
+                                                                                is_genitive=True), self.damage)
         elif self.type == EVENT_TYPE_CASTED_SPELL_ON_HIMSELF:
-            return self.player.trans.get_message(M_CASTED_SPELL_ON_HIMSELF, self.player.locale).\
+            return self.player.trans.get_message(M_CASTED_SPELL_ON_HIMSELF, self.player.locale). \
                 format(self.player.name,
                        self.player.trans.get_message(self.spell.name, self.player.locale),
                        self.player.trans.get_message(self.enemy.name, self.player.locale, is_ablative=True))
         elif self.type == EVENT_TYPE_FOUND_LOOT:
-            return self.player.trans.get_message(M_FOUND_LOOT, self.player.locale).\
+            return self.player.trans.get_message(M_FOUND_LOOT, self.player.locale). \
                 format(self.player.name,
                        self.player.trans.get_message(self.enemy.name, self.player.locale, is_genitive=True),
                        self.gold,
@@ -93,13 +97,21 @@ class Event:
             return self.player.trans.get_message(M_REACHED_LEVEL, self.player.locale).format(self.player.name,
                                                                                              self.level)
         elif self.type == EVENT_TYPE_BOUGHT_HEALTH_POTIONS:
-            return self.player.trans.get_message(M_BOUGHT_HEALTH_POTIONS, self.player.locale).format(self.player.name,
-                                                                                                     self.potion_number,
-                                                                                                     self.player.trans.get_message(M_POTION, self.player.locale, connected_number=self.potion_number))
+            return self.player.trans.get_message(M_BOUGHT_HEALTH_POTIONS,
+                                                 self.player.locale).format(self.player.name,
+                                                                            self.potion_number,
+                                                                            self.player.trans.get_message(
+                                                                                M_POTION,
+                                                                                self.player.locale,
+                                                                                connected_number=self.potion_number))
         elif self.type == EVENT_TYPE_BOUGHT_MANA_POTIONS:
-            return self.player.trans.get_message(M_BOUGHT_MANA_POTIONS, self.player.locale).format(self.player.name,
-                                                                                                   self.potion_number,
-                                                                                                   self.player.trans.get_message(M_POTION, self.player.locale, connected_number=self.potion_number))
+            return self.player.trans.get_message(M_BOUGHT_MANA_POTIONS,
+                                                 self.player.locale).format(self.player.name,
+                                                                            self.potion_number,
+                                                                            self.player.trans.get_message(
+                                                                                M_POTION,
+                                                                                self.player.locale,
+                                                                                connected_number=self.potion_number))
         elif self.type == EVENT_TYPE_BOUGHT_EQUIPMENT:
             return self.player.trans.get_message(M_BOUGHT_EQUIPMENT, self.player.locale).format(self.player.name,
                                                                                                 self.item, self.gold)
@@ -108,7 +120,7 @@ class Event:
                                                                                       self.mp)
         elif self.type == EVENT_TYPE_USED_ABILITY:
             if self.ability_type.effect is None:
-                return self.player.trans.get_message(M_USED_ABILITY, self.player.locale).\
+                return self.player.trans.get_message(M_USED_ABILITY, self.player.locale). \
                     format(self.player.name,
                            self.player.trans.get_message(self.ability_type.name, self.player.locale),
                            self.damage,

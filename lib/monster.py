@@ -35,9 +35,15 @@ class Monster:
         self.level = level
         self.level_applied = False
         self.player = player
-        self.trans = player.trans
-        self.locale = player.locale
         self.effects = []
+
+    @property
+    def trans(self):
+        return self.player.trans
+
+    @property
+    def locale(self):
+        return self.player.locale
 
     @property
     def die_at(self):

@@ -87,7 +87,7 @@ class Persist:
                 weapon.equip(player)
             if len(armor_name) > 0:
                 armor = Item(1, ITEM_SLOT_ARMOR)
-                armor.set_name(armor.name)
+                armor.set_name(armor_name)
                 armor.level = armor_level
                 armor.equip(player)
             players.append(player)

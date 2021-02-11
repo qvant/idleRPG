@@ -320,6 +320,7 @@ class QueueListener:
             code = QUEUE_STATUS_CHARACTER_NOT_EXISTS
             result = self.trans.get_message(M_USER_HAS_NO_CHARACTER, locale).format(telegram_id)
         resp = {"code": code, "message": result, "user_id": telegram_id}
+        self.logger.info("Character deletion for user {0} done".format(telegram_id))
         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
                                                                                                QUEUE_NAME_RESPONSES))

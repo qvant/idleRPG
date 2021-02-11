@@ -101,12 +101,21 @@ class Persist:
     def delete_character(self, character):
         character.need_save = True
         self.save_character(character)
-        self.cursor.execute("""
-        insert into idle_rpg_base.arch_characters (select * from idle_rpg_base.characters t where t.id = %s)
-        """, (character.id,))
-        self.cursor.execute("""
-        delete from idle_rpg_base.characters t where t.id = %s
-        """, (character.id,))
+        try:
+            self.cursor.execute("""
+            insert into idle_rpg_base.arch_characters (select * from idle_rpg_base.characters t where t.id = %s)
+            """, (character.id,))
+            self.cursor.execute("""
+            delete from idle_rpg_base.characters t where t.id = %s
+            """, (character.id,))
+        except psycopg2.DatabaseError as err:
+            if self.stop_on_error:
+                self.logger.critical(err)
+                raise
+            else:
+                self.was_error = True
+                character.need_save = True
+                self.logger.error(err)
 
     def save_character(self, character):
         if character.need_save or self.was_error:

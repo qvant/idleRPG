@@ -1,9 +1,12 @@
 import random
-from .messages import *
+
+from .messages import M_MIN_DAMAGE, M_MAX_DAMAGE, M_COST_MP, M_MP, M_EFFECT
+from .effect import EffectType
+from .l18n import Translator
 
 
 class Spell:
-    def __init__(self, name, cost, min_damage, max_damage, is_positive=False, effect=None):
+    def __init__(self, name: str, cost: int, min_damage: int, max_damage: int, is_positive: bool, effect: EffectType):
         self.name = name
         self.cost = int(cost)
         self.min_damage = min_damage
@@ -18,7 +21,7 @@ class Spell:
     def roll_damage(self):
         return round((self.max_damage - self.min_damage) * random.random()) + self.min_damage
 
-    def translate(self, trans, code):
+    def translate(self, trans: Translator, code: str):
         res = "{0} ({2}: {1} {3}".format(trans.get_message(self.name, code), self.cost,
                                          trans.get_message(M_COST_MP, code), trans.get_message(M_MP, code))
         if self.min_damage > 0:

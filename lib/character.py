@@ -1,6 +1,5 @@
 import math
 
-from .ability import ABILITY_TRIGGER_COMBAT_START, ABILITY_TRIGGER_COMBAT_ATTACK, ABILITY_TRIGGER_COMBAT_RECEIVE_DMG
 from .consts import *
 from .event import *
 from .item import Item

@@ -25,21 +25,19 @@ MS_NUMBER_SINGLE_RULE = "NUMBER_SINGLE_RULE"
 MS_NUMBER_FEW_RULE = "NUMBER_FEW_RULE"
 MS_NUMBER_MANY_RULE = "NUMBER_MANY_RULE"
 
+
 # TODO: replace for gettext
 class L18n:
     # Class for translation messages to chosen language
     def __init__(self):
         self.locale = ''
         self.encoding = None
-        self.msg_map = []
+        self.msg_map = {}
         self.alternative = None
         self.single_rule = None
         self.few_rule = None
 
-    def set_encoding(self, encoding):
-        self.encoding = encoding
-
-    def set_locale(self, name):
+    def set_locale(self, name: str):
         self.locale = name
         f = "l18n//" + name + ".lng"
         fp = codecs.open(f, 'r', "utf-8")
@@ -50,7 +48,7 @@ class L18n:
             self.alternative = L18n()
             self.alternative.set_locale(DEFAULT_LOCALE)
 
-    def get_message(self, msg_type, word_form=None):
+    def get_message(self, msg_type: str, word_form: int = None) -> str:
         if msg_type in self.msg_map.keys():
             msg = self.msg_map[msg_type]
             if isinstance(msg, dict):
@@ -84,7 +82,7 @@ class L18n:
                 if len(msg) == 0:
                     raise KeyError(
                         "Can't find message {} in locale {} (default locale {} with form {} )".
-                            format(msg_type, self.locale, DEFAULT_LOCALE, word_form))
+                        format(msg_type, self.locale, DEFAULT_LOCALE, word_form))
         elif self.locale != DEFAULT_LOCALE:
             msg = self.alternative.get_message(msg_type, word_form)
         else:
@@ -94,7 +92,7 @@ class L18n:
             msg = str(msg.encode(self.encoding))
         return msg
 
-    def get_dependent_form(self, msg_type):
+    def get_dependent_form(self, msg_type: str) -> int:
         if msg_type in self.msg_map.keys():
             msg = self.msg_map[msg_type]
             if isinstance(msg, dict):
@@ -131,14 +129,15 @@ class Translator:
         self.default_translator = self.locales["en"]
         self.active_translator = self.default_translator
 
-    def set_locale(self, code):
+    def set_locale(self, code: str):
         if code in self.locales.keys():
             self.active_translator = self.locales[code]
         else:
             self.active_translator = self.default_translator
 
-    def get_message(self, msg_type, code, is_nominative=False, is_genitive=False, is_ablative=False, is_accusative=False,
-                    connected_number=None, connected_word=None, is_dative=False):
+    def get_message(self, msg_type: str, code: str, is_nominative: bool = False, is_genitive: bool = False,
+                    is_ablative: bool = False, is_accusative: bool = False,
+                    connected_number: int = None, connected_word: str = None, is_dative: bool = False) -> str:
         if code in self.locales.keys():
             locale = self.locales[code]
         else:

@@ -263,65 +263,69 @@ def main():
     global bot_queue
     global server
     global trans
-    server.set_players(player_list)
-    server.set_hist_len(config.char_history_len)
-    server.set_feedback(feedback)
-    bot_queue.set_translator(trans)
-    while True:
-        turn_start_time = datetime.datetime.now()
-        turn_end_time_r = turn_start_time + datetime.timedelta(seconds=config.turn_time)
-        player_cnt = 0
-        for i in player_list:
-            try:
-                chose_action(i)
-                do_action(i)
-            except BaseException as err:
-                if config.halt_on_game_errors:
-                    app_log.critical(err)
-                    raise
-                else:
-                    app_log.error(err)
-            db.save_character(character=i)
-            game_log.debug(i)
-            player_cnt += 1
-            if player_cnt >= config.char_batch_size > 0:
-                player_cnt = 0
-                bot_queue.listen(server, player_list, db, feedback)
-        server.inc_turns()
-        db.commit()
-        config.renew_if_needed()
-        if config.reloaded:
-            app_log.setLevel(config.log_level)
-            game_log.setLevel(config.log_level)
-            config.mark_reload_finish()
-            if config.db_credential_changed:
+    try:
+        server.set_players(player_list)
+        server.set_hist_len(config.char_history_len)
+        server.set_feedback(feedback)
+        bot_queue.set_translator(trans)
+        while True:
+            turn_start_time = datetime.datetime.now()
+            turn_end_time_r = turn_start_time + datetime.timedelta(seconds=config.turn_time)
+            player_cnt = 0
+            for i in player_list:
+                try:
+                    chose_action(i)
+                    do_action(i)
+                except BaseException as err:
+                    if config.halt_on_game_errors:
+                        app_log.critical(err)
+                        raise
+                    else:
+                        app_log.error(err)
+                db.save_character(character=i)
+                game_log.debug(i)
+                player_cnt += 1
+                if player_cnt >= config.char_batch_size > 0:
+                    player_cnt = 0
+                    bot_queue.listen(server, player_list, db, feedback)
+            server.inc_turns()
+            db.commit()
+            config.renew_if_needed()
+            if config.reloaded:
+                app_log.setLevel(config.log_level)
+                game_log.setLevel(config.log_level)
+                config.mark_reload_finish()
+                if config.db_credential_changed:
+                    db.renew(config)
+                bot_queue.renew(config)
+            elif db.was_error:
                 db.renew(config)
-            bot_queue.renew(config)
-        elif db.was_error:
-            db.renew(config)
-        turn_end_time = datetime.datetime.now()
-        if config.turn_time > 0 and turn_end_time > turn_end_time_r:
-            app_log.warning("Turn {4} takes too long: started at: {0}, ended at: {1}, should ended: {2} "
-                            "should take:{3}".format(turn_start_time, turn_end_time, turn_end_time_r, config.turn_time,
-                                                     server.turn))
-        else:
-            app_log.info("Turn {4} ended: started at: {0}, ended at: {1}, should ended: {2} should take:{3}".format(
-                turn_start_time, turn_end_time, turn_end_time_r, config.turn_time, server.turn))
-            if config.turn_time > 0:
-                if config.queue_interval_on_sleep is not None:
-                    while datetime.datetime.now() <= turn_end_time_r:
+            turn_end_time = datetime.datetime.now()
+            if config.turn_time > 0 and turn_end_time > turn_end_time_r:
+                app_log.warning("Turn {4} takes too long: started at: {0}, ended at: {1}, should ended: {2} "
+                                "should take:{3}".format(turn_start_time, turn_end_time, turn_end_time_r, config.turn_time,
+                                                         server.turn))
+            else:
+                app_log.info("Turn {4} ended: started at: {0}, ended at: {1}, should ended: {2} should take:{3}".format(
+                    turn_start_time, turn_end_time, turn_end_time_r, config.turn_time, server.turn))
+                if config.turn_time > 0:
+                    if config.queue_interval_on_sleep is not None:
+                        while datetime.datetime.now() <= turn_end_time_r:
+                            app_log.debug("Sleep in main cycle")
+                            # when sleep, check and process message queue
+                            time.sleep(min((turn_end_time_r - datetime.datetime.now()).seconds,
+                                           config.queue_interval_on_sleep))
+                            app_log.debug("Wake up to process queue")
+                            bot_queue.listen(server, player_list, db, feedback)
+                    else:
                         app_log.debug("Sleep in main cycle")
-                        # when sleep, check and process message queue
-                        time.sleep(min((turn_end_time_r - datetime.datetime.now()).seconds,
-                                       config.queue_interval_on_sleep))
-                        app_log.debug("Wake up to process queue")
-                        bot_queue.listen(server, player_list, db, feedback)
-                else:
-                    app_log.debug("Sleep in main cycle")
-                    time.sleep((turn_end_time_r - turn_end_time).seconds)
-        if server.turn >= config.max_turns > 0 or server.is_shutdown:
-            break
-        bot_queue.listen(server, player_list, db, feedback)
+                        time.sleep((turn_end_time_r - turn_end_time).seconds)
+            if server.turn >= config.max_turns > 0 or server.is_shutdown:
+                break
+            bot_queue.listen(server, player_list, db, feedback)
+    except BaseException as err:
+        app_log.critical(err)
+        raise
 
 
 if __name__ == '__main__':

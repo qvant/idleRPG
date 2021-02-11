@@ -80,7 +80,7 @@ class AbilityType:
             else:
                 self.effect.apply(target=player.enemy)
 
-    def translate(self, trans: Translator, code: str):
+    def translate(self, trans: Translator, code: str) -> str:
         res = "{0} ({1}: {2}. {3}. {4}: {5} %.".format(trans.get_message(self.name, code).capitalize(),
                                                        trans.get_message(M_ABILITY_TRIGGER, code),
                                                        trans.get_message(self.event, code),

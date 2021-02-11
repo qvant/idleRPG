@@ -33,11 +33,3 @@ class Spell:
         res += ")"
         return res
 
-    def __str__(self):
-        res = "{0} (cost: {1} mp".format(self.name, self.cost)
-        if self.min_damage > 0:
-            res += ", min damage: {0}, max damage: {1}".format(self.min_damage, self.max_damage)
-        if self.effect is not None:
-            res += ", effect: {0}".format(str(self.effect))
-        res += ")"
-        return res

@@ -8,7 +8,7 @@ class Item:
     weapon_list = {}
     armor_list = {}
 
-    def __init__(self, level, slot):
+    def __init__(self, level: int, slot: int):
         if slot == ITEM_SLOT_WEAPON:
             self.affix = get_random_array_element(Item.weapon_list["affixes"])
             self.type = get_random_array_element(Item.weapon_list["types"])
@@ -22,7 +22,7 @@ class Item:
         self.owner = None
 
     @property
-    def name(self):
+    def name(self) -> str:
         if self.owner is None:
             return self._name
         else:
@@ -31,7 +31,7 @@ class Item:
                                         self.owner.trans.get_message(self.type, self.owner.locale),
                                         self.owner.trans.get_message(self.suffix, self.owner.locale))
 
-    def name_in_form(self, is_ablative=False, is_accusative=False):
+    def name_in_form(self, is_ablative: bool = False, is_accusative: bool = False) -> str:
         if self.owner is None:
             return self._name
         else:
@@ -44,29 +44,29 @@ class Item:
                                         self.owner.trans.get_message(self.suffix, self.owner.locale))
 
     @property
-    def _name(self):
+    def _name(self) -> str:
         return "{0} {1} {2}".format(self.affix, self.type, self.suffix)
 
     @property
-    def price(self):
+    def price(self) -> int:
         return self.level * 250
 
     @property
-    def attack(self):
+    def attack(self) -> int:
         res = 0
         if self.slot == ITEM_SLOT_WEAPON:
             res = self.level
         return res
 
     @property
-    def defence(self):
+    def defence(self) -> int:
         res = 0
         if self.slot == ITEM_SLOT_ARMOR:
             res = self.level
         return res
 
     # recover parts of name from result string
-    def set_name(self, name):
+    def set_name(self, name: str):
         parts = name.split(" ")
         # TODO: rewrite completely
         pos = 0
@@ -117,7 +117,7 @@ class Item:
         elif self.slot == ITEM_SLOT_ARMOR:
             owner.armor = self
 
-    def translate(self, is_ablative=False, is_accusative=False):
+    def translate(self, is_ablative: bool = False, is_accusative: bool = False):
         return "{0} + {1}".format(self.name_in_form(is_ablative=is_ablative, is_accusative=is_accusative), self.level)
 
     def __str__(self):

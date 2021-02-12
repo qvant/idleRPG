@@ -21,7 +21,25 @@ class Persist:
         self.__init__(config)
 
     def commit(self):
-        self.conn.commit()
+        try:
+            self.conn.commit()
+        except psycopg2.Error as err:
+            if self.stop_on_error:
+                self.logger.critical(err)
+                raise
+            else:
+                self.was_error = True
+                self.logger.error(err)
+
+    def rollback(self, suppress_errors: bool = False):
+        try:
+            self.conn.rollback()
+        except psycopg2.Error as err:
+            self.logger.critical(str(err))
+            if suppress_errors:
+                pass
+            else:
+                raise
 
     def clear_all(self):
         self.cursor.execute("""truncate table idle_rpg_base.characters;""")
@@ -101,21 +119,12 @@ class Persist:
     def delete_character(self, character):
         character.need_save = True
         self.save_character(character)
-        try:
-            self.cursor.execute("""
-            insert into idle_rpg_base.arch_characters (select * from idle_rpg_base.characters t where t.id = %s)
-            """, (character.id,))
-            self.cursor.execute("""
-            delete from idle_rpg_base.characters t where t.id = %s
-            """, (character.id,))
-        except psycopg2.DatabaseError as err:
-            if self.stop_on_error:
-                self.logger.critical(err)
-                raise
-            else:
-                self.was_error = True
-                character.need_save = True
-                self.logger.error(err)
+        self.cursor.execute("""
+        insert into idle_rpg_base.arch_characters (select * from idle_rpg_base.characters t where t.id = %s)
+        """, (character.id,))
+        self.cursor.execute("""
+        delete from idle_rpg_base.characters t where t.id = %s
+        """, (character.id,))
 
     def save_character(self, character):
         if character.need_save or self.was_error:
@@ -183,7 +192,7 @@ class Persist:
                 if self.was_error:
                     self.was_error = False
                     self.logger.info('Persist restored after error')
-            except psycopg2.DatabaseError as err:
+            except psycopg2.Error as err:
                 if self.stop_on_error:
                     self.logger.critical(err)
                     raise

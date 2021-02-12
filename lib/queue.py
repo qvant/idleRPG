@@ -1,5 +1,6 @@
 import datetime
 import json
+import psycopg2
 
 import pika
 import sys
@@ -12,6 +13,7 @@ from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CL
     CMD_SET_CLASS_DESCRIPTION
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
 from .messages import *
+from .persist import Persist
 from .utility import get_logger
 
 QUEUE_INIT_BATCH = 10
@@ -296,7 +298,7 @@ class QueueListener:
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
                                                                                                QUEUE_NAME_RESPONSES))
 
-    def delete_character_handler(self, cmd, db, player_list, delivery_tag):
+    def delete_character_handler(self, cmd, db: Persist, player_list, delivery_tag):
         telegram_id = cmd.get("user_id")
         locale = cmd.get("locale")
         self.logger.info("Character deletion for user {0} started".format(telegram_id))
@@ -311,10 +313,17 @@ class QueueListener:
                     result = self.trans.get_message(M_CHARACTER_WAS_DELETED, locale).\
                         format(self.trans.get_message(player_list[i].class_name, locale).capitalize(),
                                player_list[i].name, player_list[i].level)
-                    db.delete_character(player_list[i])
-                    db.commit()
-                    del player_list[i]
-                    code = QUEUE_STATUS_OK
+                    try:
+                        db.delete_character(player_list[i])
+                        db.commit()
+                        del player_list[i]
+                        code = QUEUE_STATUS_OK
+                    except psycopg2.Error as err:
+                        self.logger.critical(err)
+                        db.rollback(suppress_errors=True)
+                        locale = cmd.get("locale")
+                        result = self.trans.get_message(M_TRY_LATER, locale)
+                        code = QUEUE_STATUS_ERROR
                     break
         if code is None:
             code = QUEUE_STATUS_CHARACTER_NOT_EXISTS
@@ -368,6 +377,12 @@ class QueueListener:
             except ValueError as err:
                 result = str(err)
                 code = QUEUE_STATUS_ERROR
+            except psycopg2.DatabaseError as err:
+                self.logger.critical(err)
+                locale = cmd.get("locale")
+                result = self.trans.get_message(M_TRY_LATER, locale)
+                code = QUEUE_STATUS_ERROR
+
         resp = {"code": code, "message": result, "user_id": telegram_id,
                 "cmd_type": CMD_FEEDBACK_RECEIVE}
         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))

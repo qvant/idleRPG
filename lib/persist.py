@@ -209,7 +209,7 @@ class Persist:
         )
         for msg_id, telegram_id, telegram_nickname, message in self.cursor:
             message_list.add_message(telegram_id=telegram_id, telegram_nickname=telegram_nickname, message=message,
-                                     msg_id=msg_id, supress_limit_check=True)
+                                     msg_id=msg_id, suppress_limit_check=True)
 
     def save_message(self, message, user_id=None):
         if message.id is None:

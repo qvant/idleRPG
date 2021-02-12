@@ -21,7 +21,25 @@ class Persist:
         self.__init__(config)
 
     def commit(self):
-        self.conn.commit()
+        try:
+            self.conn.commit()
+        except psycopg2.Error as err:
+            if self.stop_on_error:
+                self.logger.critical(err)
+                raise
+            else:
+                self.was_error = True
+                self.logger.error(err)
+
+    def rollback(self, suppress_errors: bool = False):
+        try:
+            self.conn.rollback()
+        except psycopg2.Error as err:
+            self.logger.critical(str(err))
+            if suppress_errors:
+                pass
+            else:
+                raise
 
     def clear_all(self):
         self.cursor.execute("""truncate table idle_rpg_base.characters;""")
@@ -87,7 +105,7 @@ class Persist:
                 weapon.equip(player)
             if len(armor_name) > 0:
                 armor = Item(1, ITEM_SLOT_ARMOR)
-                armor.set_name(armor.name)
+                armor.set_name(armor_name)
                 armor.level = armor_level
                 armor.equip(player)
             players.append(player)
@@ -174,7 +192,7 @@ class Persist:
                 if self.was_error:
                     self.was_error = False
                     self.logger.info('Persist restored after error')
-            except psycopg2.DatabaseError as err:
+            except psycopg2.Error as err:
                 if self.stop_on_error:
                     self.logger.critical(err)
                     raise
@@ -191,7 +209,7 @@ class Persist:
         )
         for msg_id, telegram_id, telegram_nickname, message in self.cursor:
             message_list.add_message(telegram_id=telegram_id, telegram_nickname=telegram_nickname, message=message,
-                                     msg_id=msg_id, supress_limit_check=True)
+                                     msg_id=msg_id, suppress_limit_check=True)
 
     def save_message(self, message, user_id=None):
         if message.id is None:

@@ -1,15 +1,21 @@
 import math
+import typing
 
-from .ability import ABILITY_TRIGGER_COMBAT_START, ABILITY_TRIGGER_COMBAT_ATTACK, ABILITY_TRIGGER_COMBAT_RECEIVE_DMG
+from .ai import CharAI
+from .char_classes import CharClass
+from .config import Config
 from .consts import *
 from .event import *
 from .item import Item
+from .l18n import Translator
 from .messages import *
+from .monster import Monster
+from .quest import Quest
 from .utility import check_chance, get_logger
 
 
 class Character:
-    def __init__(self, name, char_class, telegram_id=None, is_created=True):
+    def __init__(self, name: str, char_class: CharClass, telegram_id: int = None, is_created: bool = True):
         self.id = None
         self.telegram_id = telegram_id
         self.name = name
@@ -52,15 +58,15 @@ class Character:
             self.logger.info('Character {} {} loaded from db'.format(self.name, self.class_name))
 
     @classmethod
-    def set_logger(cls, config):
+    def set_logger(cls, config: Config):
         cls.logger = get_logger(LOG_CHARACTER, config.log_level)
 
     @classmethod
-    def set_translator(cls, trans):
+    def set_translator(cls, trans: Translator):
         cls.trans = trans
 
     @classmethod
-    def set_history_length(cls, config):
+    def set_history_length(cls, config: Config):
         cls.history_length = config.char_history_len
 
     @property
@@ -106,29 +112,29 @@ class Character:
         if self.hp <= 0 and not self.dead:
             self.die()
 
-    def set_locale(self, locale):
+    def set_locale(self, locale: str):
         self.locale = locale
 
-    def save_history(self, event):
+    def save_history(self, event: Event):
         while len(self.history) >= self.history_length:
             del self.history[0]
         self.history.append(event)
         self.logger.info(str(event))
 
-    def set_action(self, action):
+    def set_action(self, action: int):
         if action not in ACTIONS:
             raise ValueError("Action {) is not exists".format(action))
         self.action = action
 
-    def set_ai(self, ai):
+    def set_ai(self, ai: CharAI):
         self.ai = ai
 
-    def set_enemy(self, enemy):
+    def set_enemy(self, enemy: typing.Union[Monster, None]):
         self.enemy = enemy
         for i in self.abilities:
             i.trigger(event_type=ABILITY_TRIGGER_COMBAT_START, player=self)
 
-    def set_id(self, db_id):
+    def set_id(self, db_id: int):
         if self.id is None:
             self.id = db_id
         else:
@@ -285,12 +291,12 @@ class Character:
                 if self.enemy is not None:
                     self.enemy.apply_effects()
 
-    def set_quest(self, quest):
+    def set_quest(self, quest: typing.Union[Quest, None]):
         self.quest = quest
         self.save_history(
             Event(player=self, event_type=EVENT_TYPE_ACCEPTED_QUEST, quest=self.quest))
 
-    def move(self, distance=1):
+    def move(self, distance: int = 1):
         self.town_distance += distance
         if self.town_distance < 0:
             self.town_distance = 0
@@ -309,11 +315,11 @@ class Character:
             self.set_action(ACTION_NONE)
             self.quests_complete += 1
 
-    def give_gold(self, gold):
+    def give_gold(self, gold: int):
         self.gold += gold
         self.need_save = True
 
-    def give_exp(self, exp):
+    def give_exp(self, exp: int):
         self.exp += exp
         if self.exp >= self.level * 1000 * (1 + self.level - 1) and not self.dead:
             self.level_up()
@@ -384,9 +390,11 @@ class Character:
         res += chr(10)
         res += chr(10)
         if self.weapon is not None:
-            res += self.trans.get_message(M_CHARACTER_WEAPON, self.locale).format(self.weapon.translate(is_ablative=True))
+            res += self.trans.get_message(M_CHARACTER_WEAPON, self.locale).format(
+                self.weapon.translate(is_ablative=True))
         if self.armor is not None:
-            res += self.trans.get_message(M_CHARACTER_ARMOR, self.locale).format(self.armor.translate(is_accusative=True))
+            res += self.trans.get_message(M_CHARACTER_ARMOR, self.locale).format(self.armor.translate(
+                is_accusative=True))
         res += chr(10)
         first_spell = True
         for i in self.spells:
@@ -412,12 +420,17 @@ class Character:
         if first_ability:
             res += self.trans.get_message(M_CHARACTER_HAVE_NO_ABILITIES, self.locale)
         res += chr(10)
-        res += self.trans.get_message(M_CHARACTER_GOLD_AND_POTIONS, self.locale).format(self.gold, self.health_potions,
-                                                                                        self.mana_potions,
-                                                                                        self.trans.get_message(M_GP, self.locale, connected_number=self.gold),
-                                                                                        self.trans.get_message(M_POTION, self.locale, connected_number=self.health_potions),
-                                                                                        self.trans.get_message(M_POTION, self.locale, connected_number=self.mana_potions),
-                                                                                        )
+        res += self.trans.get_message(M_CHARACTER_GOLD_AND_POTIONS,
+                                      self.locale).format(self.gold,
+                                                          self.health_potions,
+                                                          self.mana_potions,
+                                                          self.trans.get_message(M_GP, self.locale,
+                                                                                 connected_number=self.gold),
+                                                          self.trans.get_message(M_POTION, self.locale,
+                                                                                 connected_number=self.health_potions),
+                                                          self.trans.get_message(M_POTION, self.locale,
+                                                                                 connected_number=self.mana_potions),
+                                                          )
         if len(self.effects) > 0:
             res += chr(10)
             res += chr(10)

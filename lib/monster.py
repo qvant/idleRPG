@@ -3,7 +3,8 @@ from .event import Event, EVENT_TYPE_FOUND_LOOT
 
 
 class MonsterType:
-    def __init__(self, name, attack, defence, hp, exp, gold, level_multiplier, level):
+    def __init__(self, name: str, attack: int, defence: int, hp: int, exp: int, gold: int,
+                 level_multiplier: int, level: int):
         self.name = name
         self.attack = attack
         self.defence = defence
@@ -14,7 +15,7 @@ class MonsterType:
         self.level = level
         self.level_applied = False
 
-    def create_monster(self, apply_level, player):
+    def create_monster(self, apply_level: int, player):
         m = Monster(self.name, self.attack, self.defence, self.hp, self.exp, self.gold, self.level_multiplier,
                     apply_level, player)
         if apply_level > 0:
@@ -23,7 +24,8 @@ class MonsterType:
 
 
 class Monster:
-    def __init__(self, name, attack, defence, hp, exp, gold, level_multiplier, level, player):
+    def __init__(self, name: str, attack: int, defence: int, hp: int, exp: int, gold: int, level_multiplier: int,
+                 level: int, player):
         self.name = name
         self.base_attack = attack
         self.base_defence = defence
@@ -35,9 +37,15 @@ class Monster:
         self.level = level
         self.level_applied = False
         self.player = player
-        self.trans = player.trans
-        self.locale = player.locale
         self.effects = []
+
+    @property
+    def trans(self):
+        return self.player.trans
+
+    @property
+    def locale(self):
+        return self.player.locale
 
     @property
     def die_at(self):
@@ -71,7 +79,7 @@ class Monster:
         if self.hp <= 0:
             self.die()
 
-    def apply_level(self, level):
+    def apply_level(self, level: int):
         if not self.level_applied:
             self.level_applied = True
             self.base_attack = round(self.base_attack * level * self.level_multiplier)
@@ -88,7 +96,7 @@ class Monster:
                   exp=self.exp))
         self.player.set_enemy(None)
 
-    def translate(self, is_ablative=False):
+    def translate(self, is_ablative: bool = False):
         res = "{0} ({6}: {1}/{9}, {4}: {7}({2}), {5}: {8}({3})). ".format(
             self.player.trans.get_message(self.name, self.player.locale, is_ablative=is_ablative),
             self.hp, self.attack, self.defence,

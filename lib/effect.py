@@ -32,10 +32,10 @@ class Effect:
             res += " {1} {0}".format(self.defence, self.owner.trans.get_message(M_DEFENCE, self.owner.locale))
         if self.attack_percent != 1:
             res += " {1} {0}%".format(int(self.attack_percent * 100),
-                                     self.owner.trans.get_message(M_ATTACK, self.owner.locale))
+                                      self.owner.trans.get_message(M_ATTACK, self.owner.locale))
         if self.defence_percent != 1:
             res += " {1} {0}%".format(int(self.defence_percent * 100),
-                                     self.owner.trans.get_message(M_DEFENCE, self.owner.locale))
+                                      self.owner.trans.get_message(M_DEFENCE, self.owner.locale))
         if self.damage_per_turn != 0:
             res += " {1} {0}".format(self.damage_per_turn, self.owner.trans.get_message(M_DAMAGE_PER_TURN,
                                                                                         self.owner.locale))
@@ -103,11 +103,18 @@ class EffectType:
                     # renew
                     i.duration = max(self.duration, i.duration)
         if not applied:
-            effect = Effect(self.name, self.is_positive, self.attack * (1 + self.level_scale_modifier * (target.level - 1)),
-                            self.defence * (1 + self.level_scale_modifier * (target.level - 1)), self.duration,
-                            self.damage_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
-                            self.heal_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
-                            self, target, self.attack_percent, self.defence_percent, self.die_at)
+            effect = Effect(name=self.name,
+                            is_positive=self.is_positive,
+                            attack=self.attack * (1 + self.level_scale_modifier * (target.level - 1)),
+                            defence=self.defence * (1 + self.level_scale_modifier * (target.level - 1)),
+                            init_duration=self.duration,
+                            damage_per_turn=self.damage_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
+                            heal_per_turn=self.heal_per_turn * (1 + self.level_scale_modifier * (target.level - 1)),
+                            effect_type=self,
+                            owner=target,
+                            attack_percent=self.attack_percent,
+                            defence_percent=self.defence_percent,
+                            die_at=self.die_at)
             target.effects.append(effect)
 
     def translate(self, trans, code):

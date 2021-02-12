@@ -1,3 +1,8 @@
+release 6:  
+* improved stability
+* improved russian translation
+* added typing (work in progress)
+
 release 5:  
 * translated admin messages
 * added descriptions for classes

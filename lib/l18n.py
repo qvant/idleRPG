@@ -5,6 +5,7 @@ import re
 
 DEFAULT_LOCALE = 'english'
 
+FORM_DEFAULT = 0
 FORM_NOMINATIVE = 1
 FORM_GENITIVE = 2  # Родительный падеж
 FORM_ACCUSATIVE = 3  # Винительный падеж
@@ -18,11 +19,12 @@ FORM_FEMININE_AC = 10  # женский род винительный падеж
 FORM_NEUTER = 11  # срединий род
 FORM_NEUTER_A = 12  # средний род творительный падеж
 FORM_NEUTER_AC = 13  # средний род винительный падеж
-FORM_DEFAULT = 14
+FORM_DATIVE = 14  # Дательный падеж
 
 MS_NUMBER_SINGLE_RULE = "NUMBER_SINGLE_RULE"
 MS_NUMBER_FEW_RULE = "NUMBER_FEW_RULE"
 MS_NUMBER_MANY_RULE = "NUMBER_MANY_RULE"
+
 
 # TODO: replace for gettext
 class L18n:
@@ -30,15 +32,12 @@ class L18n:
     def __init__(self):
         self.locale = ''
         self.encoding = None
-        self.msg_map = []
+        self.msg_map = {}
         self.alternative = None
         self.single_rule = None
         self.few_rule = None
 
-    def set_encoding(self, encoding):
-        self.encoding = encoding
-
-    def set_locale(self, name):
+    def set_locale(self, name: str):
         self.locale = name
         f = "l18n//" + name + ".lng"
         fp = codecs.open(f, 'r', "utf-8")
@@ -49,7 +48,7 @@ class L18n:
             self.alternative = L18n()
             self.alternative.set_locale(DEFAULT_LOCALE)
 
-    def get_message(self, msg_type, word_form=None):
+    def get_message(self, msg_type: str, word_form: int = None) -> str:
         if msg_type in self.msg_map.keys():
             msg = self.msg_map[msg_type]
             if isinstance(msg, dict):
@@ -62,6 +61,8 @@ class L18n:
                     msg = msg.get("ablative")
                 elif word_form == FORM_ACCUSATIVE:
                     msg = msg.get("accusative")
+                elif word_form == FORM_DATIVE:
+                    msg = msg.get("dative")
                 elif word_form == FORM_MULTIPLE:
                     msg = msg.get("many")
                 elif word_form == FORM_FEW:
@@ -81,7 +82,7 @@ class L18n:
                 if len(msg) == 0:
                     raise KeyError(
                         "Can't find message {} in locale {} (default locale {} with form {} )".
-                            format(msg_type, self.locale, DEFAULT_LOCALE, word_form))
+                        format(msg_type, self.locale, DEFAULT_LOCALE, word_form))
         elif self.locale != DEFAULT_LOCALE:
             msg = self.alternative.get_message(msg_type, word_form)
         else:
@@ -91,7 +92,7 @@ class L18n:
             msg = str(msg.encode(self.encoding))
         return msg
 
-    def get_dependent_form(self, msg_type):
+    def get_dependent_form(self, msg_type: str) -> int:
         if msg_type in self.msg_map.keys():
             msg = self.msg_map[msg_type]
             if isinstance(msg, dict):
@@ -128,14 +129,15 @@ class Translator:
         self.default_translator = self.locales["en"]
         self.active_translator = self.default_translator
 
-    def set_locale(self, code):
+    def set_locale(self, code: str):
         if code in self.locales.keys():
             self.active_translator = self.locales[code]
         else:
             self.active_translator = self.default_translator
 
-    def get_message(self, msg_type, code, is_nominative=False, is_genitive=False, is_ablative=False, is_accusative=False,
-                    connected_number=None, connected_word=None):
+    def get_message(self, msg_type: str, code: str, is_nominative: bool = False, is_genitive: bool = False,
+                    is_ablative: bool = False, is_accusative: bool = False,
+                    connected_number: int = None, connected_word: str = None, is_dative: bool = False) -> str:
         if code in self.locales.keys():
             locale = self.locales[code]
         else:
@@ -163,6 +165,8 @@ class Translator:
             word_form = FORM_ABLATIVE
         elif is_accusative:
             word_form = FORM_ACCUSATIVE
+        elif is_dative:
+            word_form = FORM_DATIVE
         elif connected_number is not None:
             if locale.single_rule.search(str(connected_number)):
                 word_form = FORM_SINGLE

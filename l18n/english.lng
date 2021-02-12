@@ -217,5 +217,6 @@
   "Thief_description": "Just shady and coward person.",
   "Bulwark_description": "Mighty bulwark, living wall of steel.",
   "Barbarian_description": "Barbarian, wild child of North.",
-  "CLASS_HEADER": "{0} has following attributes attack: {1}, defence {2}, health {3}, mana {4} per level."
+  "CLASS_HEADER": "{0} has following attributes attack: {1}, defence {2}, health {3}, mana {4} per level.",
+  "TRY_LATER": "Unknown error, try to repeat later."
 }

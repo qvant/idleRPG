@@ -1,24 +1,15 @@
+from .consts import ABILITY_BACKSTAB, ABILITY_SHIELD_SLAM, ABILITY_ASSAULT, ABILITY_SECOND_STRIKE, ABILITY_BLEED, \
+    ABILITY_TRIGGER_COMBAT_ATTACK, ABILITY_TRIGGERS, ABILITIES
 from .messages import *
+from .character import Character
 from .event import Event, EVENT_TYPE_USED_ABILITY
+from .effect import EffectType
+from .l18n import Translator
 from .utility import check_chance
-
-ABILITY_BACKSTAB = "backstab"
-ABILITY_SHIELD_SLAM = "Shield slam"
-ABILITY_ASSAULT = "Assault"
-ABILITY_SECOND_STRIKE = "Second strike"
-ABILITY_BLEED = "Bleed"
-ABILITY_JUST_EFFECT = "JUST_EFFECT"
-ABILITY_TRIGGER_COMBAT_START = "combat_start"
-ABILITY_TRIGGER_COMBAT_ATTACK = "combat_attack"
-ABILITY_TRIGGER_COMBAT_RECEIVE_DMG = "receive_damage"
-
-ABILITY_TRIGGERS = [ABILITY_TRIGGER_COMBAT_START, ABILITY_TRIGGER_COMBAT_ATTACK, ABILITY_TRIGGER_COMBAT_RECEIVE_DMG]
-ABILITIES = [ABILITY_BACKSTAB, ABILITY_SHIELD_SLAM, ABILITY_ASSAULT, ABILITY_SECOND_STRIKE, ABILITY_BLEED,
-             ABILITY_JUST_EFFECT]
 
 
 class AbilityType:
-    def __init__(self, name, event, action, description_code, chance, effect=None):
+    def __init__(self, name: str, event: str, action: str, description_code: str, chance: float, effect: EffectType):
         self.name = name
         self.chance = chance
         self.effect = effect
@@ -32,12 +23,12 @@ class AbilityType:
         else:
             raise ValueError("ability action {0} not supported".format(action))
 
-    def trigger(self, event_type, player, from_ability=False):
+    def trigger(self, event_type: str, player: Character, from_ability: bool = False):
         if event_type == self.event:
             if check_chance(self.chance):
                 self.use(player, from_ability)
 
-    def use(self, player, from_ability=False):
+    def use(self, player: Character, from_ability: bool = False):
         # TODO: make separate functions, also think about more flexible way to implement them
         if self.action == ABILITY_BACKSTAB:
             if player.enemy is not None:
@@ -85,11 +76,11 @@ class AbilityType:
                 player.enemy.die()
         if player.enemy is not None and self.effect is not None:
             if self.effect.is_positive:
-                self.effect.apply(player)
+                self.effect.apply(target=player)
             else:
-                self.effect.apply(player.enemy)
+                self.effect.apply(target=player.enemy)
 
-    def translate(self, trans, code):
+    def translate(self, trans: Translator, code: str) -> str:
         res = "{0} ({1}: {2}. {3}. {4}: {5} %.".format(trans.get_message(self.name, code).capitalize(),
                                                        trans.get_message(M_ABILITY_TRIGGER, code),
                                                        trans.get_message(self.event, code),

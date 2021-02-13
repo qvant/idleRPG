@@ -338,7 +338,9 @@ class QueueListener:
         telegram_id = cmd.get("user_id")
         locale = cmd.get("locale")
         self.logger.info("try to find character with telegram id {0}".format(telegram_id))
+        result = None
         char_info = ''
+        code = None
         if telegram_id is None:
             result = 'telegram_id is empty'
             code = QUEUE_STATUS_TLG_ID_EMPTY
@@ -375,7 +377,7 @@ class QueueListener:
                 result = "Success"
                 code = QUEUE_STATUS_OK
             except ValueError as err:
-                result = str(err)
+                result = err
                 code = QUEUE_STATUS_ERROR
             except psycopg2.DatabaseError as err:
                 self.logger.critical(err)
@@ -388,4 +390,3 @@ class QueueListener:
         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
                                                                                                QUEUE_NAME_RESPONSES))
-

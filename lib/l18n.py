@@ -49,7 +49,7 @@ class L18n:
             self.alternative.set_locale(DEFAULT_LOCALE)
 
     def get_message(self, msg_type: str, word_form: int = None) -> str:
-        if msg_type in self.msg_map.keys():
+        if msg_type in self.msg_map:
             msg = self.msg_map[msg_type]
             if isinstance(msg, dict):
                 # TODO rewrite
@@ -93,7 +93,7 @@ class L18n:
         return msg
 
     def get_dependent_form(self, msg_type: str) -> int:
-        if msg_type in self.msg_map.keys():
+        if msg_type in self.msg_map:
             msg = self.msg_map[msg_type]
             if isinstance(msg, dict):
                 word_form = msg.get("adjective_form")
@@ -130,7 +130,7 @@ class Translator:
         self.active_translator = self.default_translator
 
     def set_locale(self, code: str):
-        if code in self.locales.keys():
+        if code in self.locales:
             self.active_translator = self.locales[code]
         else:
             self.active_translator = self.default_translator
@@ -138,7 +138,7 @@ class Translator:
     def get_message(self, msg_type: str, code: str, is_nominative: bool = False, is_genitive: bool = False,
                     is_ablative: bool = False, is_accusative: bool = False,
                     connected_number: int = None, connected_word: str = None, is_dative: bool = False) -> str:
-        if code in self.locales.keys():
+        if code in self.locales:
             locale = self.locales[code]
         else:
             locale = self.default_translator

@@ -24,7 +24,7 @@ class MessageList:
             self.db.save_message(msg)
         else:
             msg.id = msg_id
-        if telegram_id in self.messages.keys():
+        if telegram_id in self.messages:
             if not suppress_limit_check and len(self.messages[telegram_id]) >= MAX_MESSAGES_FROM_USER:
                 raise ValueError("Too many messages from user {0}".format(telegram_id))
             self.messages[telegram_id].append(msg)

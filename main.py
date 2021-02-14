@@ -95,7 +95,7 @@ def init():
                                    init_attack=class_list_j[i]["init_attack"],
                                    init_defence=class_list_j[i]["init_defence"],
                                    class_name=class_list_j[i]["Name"])
-            if "spells" in class_list_j[i].keys():
+            if "spells" in class_list_j[i]:
                 for j in class_list_j[i]["spells"]:
                     is_positive = j.get("is_positive")
                     if is_positive is None:
@@ -118,7 +118,7 @@ def init():
                                        max_damage=j["max_damage"], is_positive=is_positive, effect=effect)
 
                     temp_class.add_spell(temp_spell)
-            if "abilities" in class_list_j[i].keys():
+            if "abilities" in class_list_j[i]:
                 for j in class_list_j[i]["abilities"]:
                     temp_effect = j.get("effect")
                     effect = None

@@ -32,6 +32,10 @@ class MessageList:
             self.messages[telegram_id] = [msg]
         self.messages_by_id[msg.id] = msg
 
+    def add_reply(self, user_id: int, message: str, msg_id: int):
+        self.db.save_message_reply(message=message, message_id=msg_id, telegram_id=user_id)
+        self.read_message(msg_id=msg_id, user_id=user_id)
+
     def read_message(self, msg_id: int, user_id: int):
         msg = self.messages_by_id.get(msg_id)
         if msg is not None:
@@ -43,6 +47,9 @@ class MessageList:
         for i in self.messages_by_id:
             return self.messages_by_id[i]
         return None
+
+    def get_message_sender(self, msg_id):
+        return self.messages_by_id[msg_id].telegram_id
 
     def load(self):
         self.db.load_messages(self)

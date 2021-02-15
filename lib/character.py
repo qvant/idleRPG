@@ -1,3 +1,4 @@
+import datetime
 import math
 import typing
 
@@ -39,6 +40,7 @@ class Character:
         self.gold = 0
         self.health_potions = 0
         self.mana_potions = 0
+        self.last_user_activity = None
         self.ai = None
         self.quest = None
         self.enemy = None
@@ -128,6 +130,10 @@ class Character:
 
     def set_ai(self, ai: CharAI):
         self.ai = ai
+
+    def set_last_user_activity(self):
+        self.last_user_activity = datetime.datetime.now()
+        self.need_save = True
 
     def set_enemy(self, enemy: typing.Union[Monster, None]):
         self.enemy = enemy

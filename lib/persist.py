@@ -116,8 +116,9 @@ class Persist:
         self.logger.info("Character loading finished, {0} characters loaded".format(len(players)))
         return players
 
-    def delete_character(self, character):
+    def delete_character(self, character: Character):
         character.need_save = True
+        character.set_last_user_activity()
         self.save_character(character)
         self.cursor.execute("""
         insert into idle_rpg_base.arch_characters (select * from idle_rpg_base.characters t where t.id = %s)
@@ -149,12 +150,12 @@ class Persist:
                                                         gold,
                                                         health_potions, mana_potions, deaths,
                                                         weapon_name, weapon_level, armor_name, armor_level, 
-                                                        telegram_id)
+                                                        telegram_id, dt_last_activity)
                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 
                             %s, %s, %s, %s,
                             %s, %s, %s,
                             %s, %s, %s, 
-                            %s, %s, %s) 
+                            %s, %s, %s, %s) 
                  returning id;
                  """,
                                         (character.name, character.class_name, character.level, character.exp,
@@ -165,7 +166,7 @@ class Persist:
                                          character.gold,
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,
-                                         armor_level, character.telegram_id))
+                                         armor_level, character.telegram_id, character.last_user_activity))
                     character.id = self.cursor.fetchone()[0]
 
                 else:
@@ -176,7 +177,8 @@ class Persist:
                                 health_potions=%s, mana_potions=%s, deaths=%s, 
                                 weapon_name=%s, weapon_level=%s, armor_name=%s, 
                                 armor_level=%s, 
-                                dt_updated = current_timestamp
+                                dt_updated = current_timestamp,
+                                dt_last_activity = coalesce(%s, dt_last_activity)
                          where id = %s;
                          """,
                                         (character.name, character.class_name, character.level, character.exp,
@@ -188,6 +190,7 @@ class Persist:
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,
                                          armor_level,
+                                         character.last_user_activity,
                                          character.id))
                 if self.was_error:
                     self.was_error = False

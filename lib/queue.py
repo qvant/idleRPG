@@ -273,6 +273,7 @@ class QueueListener:
         if len(result) == 0:
             new_character = Character(char_name, get_class(char_class), telegram_id)
             new_character.set_ai(get_ai())
+            new_character.set_last_user_activity()
             new_character.need_save = True
             self.logger.debug("try to save character")
             db.save_character(character=new_character)
@@ -336,7 +337,7 @@ class QueueListener:
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
                                                                                                QUEUE_NAME_RESPONSES))
 
-    def get_character_status_handler(self, cmd, db, player_list, delivery_tag):
+    def get_character_status_handler(self, cmd, db: Persist, player_list, delivery_tag):
         telegram_id = cmd.get("user_id")
         locale = cmd.get("locale")
         self.logger.info("try to find character with telegram id {0}".format(telegram_id))
@@ -351,8 +352,9 @@ class QueueListener:
                 if player_list[i].telegram_id == telegram_id:
                     player_list[i].set_locale(cmd.get("locale"))
                     char_info = str(player_list[i])
-                    if player_list[i].need_save:
-                        db.commit()
+                    player_list[i].set_last_user_activity()
+                    db.save_character(player_list[i])
+                    db.commit()
                     code = QUEUE_STATUS_OK
                     result = "Success"
                     break

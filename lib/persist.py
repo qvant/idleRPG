@@ -127,7 +127,7 @@ class Persist:
         delete from idle_rpg_base.characters t where t.id = %s
         """, (character.id,))
 
-    def save_character(self, character):
+    def save_character(self, character: Character):
         if character.need_save or self.was_error:
             try:
                 character.need_save = False
@@ -192,6 +192,7 @@ class Persist:
                                          armor_level,
                                          character.last_user_activity,
                                          character.id))
+                character.reset_last_user_activity()
                 if self.was_error:
                     self.was_error = False
                     self.logger.info('Persist restored after error')

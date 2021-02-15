@@ -135,6 +135,9 @@ class Character:
         self.last_user_activity = datetime.datetime.now()
         self.need_save = True
 
+    def reset_last_user_activity(self):
+        self.last_user_activity = None
+
     def set_enemy(self, enemy: typing.Union[Monster, None]):
         self.enemy = enemy
         for i in self.abilities:

@@ -75,6 +75,7 @@ def init():
         game_log = get_logger(LOG_GAME, config.log_level)
 
         db = Persist(config)
+        db.check_version()
 
         feedback = MessageList(db=db)
 

@@ -26,4 +26,4 @@ create table idle_rpg_base.arch_characters
 	telegram_id integer,
 	dt_last_activity timestamp with time zone
 );
-alter table  idle_rpg_base.arch_characters owner to idle_rpg_user;;
+alter table  idle_rpg_base.arch_characters owner to idle_rpg_user;

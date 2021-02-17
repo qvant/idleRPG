@@ -49,7 +49,7 @@ class MessageList:
         return None
 
     def get_message_sender(self, msg_id):
-        return self.messages_by_id[msg_id].telegram_id
+        return self.messages_by_id.get(msg_id).telegram_id
 
     def load(self):
         self.db.load_messages(self)

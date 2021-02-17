@@ -398,23 +398,27 @@ class QueueListener:
     def feedback_reply_handler(self, cmd, db, feedback, delivery_tag):
         message_id = cmd.get("message_id")
         telegram_id = feedback.get_message_sender(message_id)
-        message = cmd.get("message")
-        try:
-            feedback.add_reply(msg_id=message_id, message=message, user_id=telegram_id)
-            code = QUEUE_STATUS_OK
-            resp = {"code": code, "message": message, "user_id": telegram_id,
-                    "cmd_type": CMD_FEEDBACK_REPLY}
-            self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))
-            result = "Success"
-            code = QUEUE_STATUS_OK
-        except ValueError as err:
-            result = err
-            code = QUEUE_STATUS_ERROR
-        except psycopg2.DatabaseError as err:
-            self.logger.critical(err)
-            locale = cmd.get("locale")
-            result = self.trans.get_message(M_TRY_LATER, locale)
-            code = QUEUE_STATUS_ERROR
+        if telegram_id is None:
+            code = QUEUE_STATUS_TLG_ID_EMPTY
+            result = 'Telegram_id is empty'
+        else:
+            message = cmd.get("message")
+            try:
+                feedback.add_reply(msg_id=message_id, message=message, user_id=telegram_id)
+                code = QUEUE_STATUS_OK
+                resp = {"code": code, "message": message, "user_id": telegram_id,
+                        "cmd_type": CMD_FEEDBACK_REPLY}
+                self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))
+                result = "Success"
+                code = QUEUE_STATUS_OK
+            except ValueError as err:
+                result = err
+                code = QUEUE_STATUS_ERROR
+            except psycopg2.DatabaseError as err:
+                self.logger.critical(err)
+                locale = cmd.get("locale")
+                result = self.trans.get_message(M_TRY_LATER, locale)
+                code = QUEUE_STATUS_ERROR
         resp = {"code": code, "message": result, "user_id": telegram_id,
                 "cmd_type": CMD_FEEDBACK_RECEIVE}
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,

@@ -1,9 +1,11 @@
+from .l18n import Translator
 from .messages import M_CLASS_HEADER, M_CHARACTER_SPELL_LIST, M_CHARACTER_HAVE_NO_SPELLS, M_CHARACTER_ABILITIES_LIST, \
     M_CHARACTER_HAVE_NO_ABILITIES
+from .spell import Spell
 
 
 class CharClass:
-    def __init__(self, init_hp, init_mp, init_attack, init_defence, class_name):
+    def __init__(self, init_hp: int, init_mp: int, init_attack: int, init_defence: int, class_name: str):
         self.init_hp = init_hp
         self.init_mp = init_mp
         self.init_attack = init_attack
@@ -12,7 +14,7 @@ class CharClass:
         self.spells = []
         self.abilities = []
 
-    def add_spell(self, spell):
+    def add_spell(self, spell: Spell):
         self.spells.append(spell)
 
     def add_ability(self, ability):
@@ -35,7 +37,7 @@ class CharClass:
         character.base_attack += self.init_attack
         character.base_defence += self.init_defence
 
-    def translate(self, trans, code):
+    def translate(self, trans: Translator, code: str):
         # TODO: reuse this code in character's translation
         res = trans.get_message(M_CLASS_HEADER, code).\
             format(trans.get_message(self.class_name, code),

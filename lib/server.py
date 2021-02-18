@@ -22,6 +22,7 @@ class Server:
         self.history_length = None
         self.feedback = None
         self._trans = None
+        self._code = None
 
     def trans_message(self, message: str, code: str) -> str:
         return self._trans.get_message(message, code)
@@ -32,6 +33,11 @@ class Server:
     @property
     def uptime(self) -> datetime.timedelta:
         return datetime.datetime.now().replace(microsecond=0) - self.startup
+
+    def translate_timedelta(self, delta: datetime.timedelta, code: str) -> str:
+        res = "{1} {0} {2}".format(self._trans.get_message(M_DAYS, code, connected_number=delta.days), delta.days,
+                                   delta - datetime.timedelta(days=delta.days))
+        return res
 
     def inc_turns(self):
         if self.turn == 1:
@@ -86,7 +92,8 @@ class Server:
         return str(process.cpu_percent())
 
     def translate(self, code: str) -> str:
-        res = self._trans.get_message(M_SERVER_UPTIME, code).format(self.startup, self.uptime) + chr(10)
+        uptime = self.translate_timedelta(self.uptime, code)
+        res = self._trans.get_message(M_SERVER_UPTIME, code).format(self.startup, uptime) + chr(10)
         res += self._trans.get_message(M_SERVER_CHARACTERS, code).format(len(self.players)) + chr(10)
         res += self._trans.get_message(M_SERVER_TURNS_PASSED, code).format(self.turn) + chr(10)
         res += self._trans.get_message(M_SERVER_FEEDBACK_MESSAGES, code).format(self.feedback.get_message_number()) + chr(10)

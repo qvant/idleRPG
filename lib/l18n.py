@@ -12,7 +12,7 @@ FORM_ACCUSATIVE = 3  # Винительный падеж
 FORM_ABLATIVE = 4  # Творительный падеж
 FORM_MULTIPLE = 5  # Множественное число
 FORM_FEW = 6  # Творительный падеж
-FORM_SINGLE = 7  # Творительный падеж
+FORM_SINGLE = 7  # Единственное число
 FORM_FEMININE = 8  # женский род
 FORM_FEMININE_A = 9  # женский род творительный падеж
 FORM_FEMININE_AC = 10  # женский род винительный падеж
@@ -92,6 +92,24 @@ class L18n:
             msg = str(msg.encode(self.encoding))
         return msg
 
+    def get_single_rule(self, msg_type: str):
+        if msg_type in self.msg_map:
+            msg = self.msg_map[msg_type]
+            if isinstance(msg, dict):
+                rule = self.msg_map[msg_type].get("single_rule")
+                if rule is not None:
+                    return re.compile(rule)
+        return None
+
+    def get_few_rule(self, msg_type: str):
+        if msg_type in self.msg_map:
+            msg = self.msg_map[msg_type]
+            if isinstance(msg, dict):
+                rule = self.msg_map[msg_type].get("few_rule")
+                if rule is not None:
+                    return re.compile(rule)
+        return None
+
     def get_dependent_form(self, msg_type: str) -> int:
         if msg_type in self.msg_map:
             msg = self.msg_map[msg_type]
@@ -168,10 +186,17 @@ class Translator:
         elif is_dative:
             word_form = FORM_DATIVE
         elif connected_number is not None:
-            if locale.single_rule.search(str(connected_number)):
+            rule = locale.get_single_rule(msg_type)
+            if rule is None:
+                rule = locale.single_rule
+            if rule.search(str(connected_number)):
                 word_form = FORM_SINGLE
-            elif locale.few_rule.search(str(connected_number)):
-                word_form = FORM_FEW
             else:
-                word_form = FORM_MULTIPLE
+                rule = locale.get_few_rule(msg_type)
+                if rule is None:
+                    rule = locale.few_rule
+                if rule.search(str(connected_number)):
+                    word_form = FORM_FEW
+                else:
+                    word_form = FORM_MULTIPLE
         return locale.get_message(msg_type, word_form)

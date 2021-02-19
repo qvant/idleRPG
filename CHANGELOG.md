@@ -1,3 +1,9 @@
+release 7:  
+* improved stability
+* improved russian translation in admin interface
+* added persist version checking
+* small linter fixes
+
 release 6:  
 * improved stability
 * improved russian translation

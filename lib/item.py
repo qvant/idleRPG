@@ -117,7 +117,7 @@ class Item:
         elif self.slot == ITEM_SLOT_ARMOR:
             owner.armor = self
 
-    def translate(self, is_ablative: bool = False, is_accusative: bool = False):
+    def translate(self, is_ablative: bool = False, is_accusative: bool = False) -> str:
         return "{0} + {1}".format(self.name_in_form(is_ablative=is_ablative, is_accusative=is_accusative), self.level)
 
     def __str__(self):

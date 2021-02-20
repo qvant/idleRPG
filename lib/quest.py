@@ -18,19 +18,19 @@ class Quest:
         self.owner.set_quest(self)
 
     @classmethod
-    def set_verbs(cls, verbs):
+    def set_verbs(cls, verbs: [str]):
         cls.quest_verbs = verbs
 
     @classmethod
-    def set_adjectives(cls, adjectives):
+    def set_adjectives(cls, adjectives: [str]):
         cls.quest_adjectives = adjectives
 
     @classmethod
-    def set_nouns(cls, nouns):
+    def set_nouns(cls, nouns: [str]):
         cls.quest_nouns = nouns
 
     @classmethod
-    def set_numbers(cls, numbers):
+    def set_numbers(cls, numbers: [str]):
         cls.quest_max_target = len(numbers)
 
     def __str__(self):

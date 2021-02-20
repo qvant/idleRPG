@@ -1,16 +1,19 @@
 import psycopg2
 
+from .ai import CharAI
+from .char_classes import CharClass
 from .character import Character
 from .consts import ITEM_SLOT_WEAPON, ITEM_SLOT_ARMOR, LOG_PERSIST
 from .item import Item
 from .utility import get_logger
+from .config import Config
 
 PERSIST_VERSION = 1
 PERSIST_NAME = 'idle RPG'
 
 
 class Persist:
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.logger = get_logger(LOG_PERSIST, config.log_level, is_system=True)
         self.conn = psycopg2.connect(dbname=config.db_name, user=config.db_user,
                                      password=config.db_password, host=config.db_host, port=config.db_port)
@@ -19,7 +22,7 @@ class Persist:
         self.was_error = False
         self.logger.info('Persist ready')
 
-    def renew(self, config):
+    def renew(self, config: Config):
         self.conn.close()
         self.__init__(config)
 
@@ -58,7 +61,7 @@ class Persist:
         self.commit()
         self.logger.warn("Persist cleared")
 
-    def load_all_characters(self, class_list, ai):
+    def load_all_characters(self, class_list: [CharClass], ai: CharAI) -> [Character]:
         class_by_name = {}
         players = []
         self.logger.info("Character loading started")
@@ -235,7 +238,7 @@ class Persist:
             """, (message_id, telegram_id, message)
         )
 
-    def save_message(self, message, user_id=None):
+    def save_message(self, message, user_id: int = None):
         if message.id is None:
             self.cursor.execute(
                 """

@@ -1,15 +1,15 @@
 import datetime
 import json
-import psycopg2
+import sys
 
 import pika
-import sys
+import psycopg2
 
 from .character import Character
 from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CLASS_LIST, CMD_CREATE_CHARACTER, \
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
-    CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK,\
+    CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK, \
     CMD_SET_CLASS_DESCRIPTION, CMD_FEEDBACK_REPLY
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
 from .messages import *
@@ -423,4 +423,3 @@ class QueueListener:
                 "cmd_type": CMD_FEEDBACK_RECEIVE}
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
                                                                                                QUEUE_NAME_RESPONSES))
-

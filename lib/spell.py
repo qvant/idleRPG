@@ -1,8 +1,8 @@
 import random
 
-from .messages import M_MIN_DAMAGE, M_MAX_DAMAGE, M_COST_MP, M_MP, M_EFFECT
 from .effect import EffectType
 from .l18n import Translator
+from .messages import M_MIN_DAMAGE, M_MAX_DAMAGE, M_COST_MP, M_MP, M_EFFECT
 
 
 class Spell:
@@ -32,4 +32,3 @@ class Spell:
             res += ", {1}: {0}".format(self.effect.translate(trans, code), trans.get_message(M_EFFECT, code))
         res += ")"
         return res
-

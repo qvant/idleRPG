@@ -1,3 +1,4 @@
+from typing import Union
 from .persist import Persist
 
 MAX_MESSAGES_FROM_USER = 3
@@ -24,13 +25,17 @@ class MessageList:
             self.db.save_message(msg)
         else:
             msg.id = msg_id
-        if telegram_id in self.messages.keys():
+        if telegram_id in self.messages:
             if not suppress_limit_check and len(self.messages[telegram_id]) >= MAX_MESSAGES_FROM_USER:
                 raise ValueError("Too many messages from user {0}".format(telegram_id))
             self.messages[telegram_id].append(msg)
         else:
             self.messages[telegram_id] = [msg]
         self.messages_by_id[msg.id] = msg
+
+    def add_reply(self, user_id: int, message: str, msg_id: int):
+        self.db.save_message_reply(message=message, message_id=msg_id, telegram_id=user_id)
+        self.read_message(msg_id=msg_id, user_id=user_id)
 
     def read_message(self, msg_id: int, user_id: int):
         msg = self.messages_by_id.get(msg_id)
@@ -39,13 +44,16 @@ class MessageList:
             self.messages[msg.telegram_id].remove(msg)
             del self.messages_by_id[msg_id]
 
-    def get_message(self):
+    def get_message(self) -> Union[Message, None]:
         for i in self.messages_by_id:
             return self.messages_by_id[i]
         return None
 
+    def get_message_sender(self, msg_id: int) -> int:
+        return self.messages_by_id.get(msg_id).telegram_id
+
     def load(self):
         self.db.load_messages(self)
 
-    def get_message_number(self):
+    def get_message_number(self) -> int:
         return len(self.messages_by_id)

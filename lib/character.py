@@ -1,3 +1,4 @@
+import datetime
 import math
 import typing
 
@@ -39,6 +40,7 @@ class Character:
         self.gold = 0
         self.health_potions = 0
         self.mana_potions = 0
+        self.last_user_activity = None
         self.ai = None
         self.quest = None
         self.enemy = None
@@ -70,7 +72,7 @@ class Character:
         cls.history_length = config.char_history_len
 
     @property
-    def attack(self):
+    def attack(self) -> int:
         if self.weapon is not None:
             item_bonus = self.weapon.level
         else:
@@ -84,14 +86,14 @@ class Character:
         return round(max((self.base_attack + item_bonus + effect_bonus) * effect_percent, 0))
 
     @property
-    def die_at(self):
+    def die_at(self) -> int:
         effect_bonus = 0
         for i in self.effects:
             effect_bonus += i.die_at
         return effect_bonus
 
     @property
-    def defence(self):
+    def defence(self) -> int:
         if self.armor is not None:
             item_bonus = self.armor.level
         else:
@@ -129,6 +131,13 @@ class Character:
     def set_ai(self, ai: CharAI):
         self.ai = ai
 
+    def set_last_user_activity(self):
+        self.last_user_activity = datetime.datetime.now()
+        self.need_save = True
+
+    def reset_last_user_activity(self):
+        self.last_user_activity = None
+
     def set_enemy(self, enemy: typing.Union[Monster, None]):
         self.enemy = enemy
         for i in self.abilities:
@@ -142,15 +151,15 @@ class Character:
                              format(self, self.id, db_id))
 
     @property
-    def ready(self):
+    def ready(self) -> bool:
         return self.wait_counter == 0
 
     @property
-    def hp_percent(self):
+    def hp_percent(self) -> float:
         return round(self.hp / self.max_hp * 100, 2)
 
     @property
-    def mp_percent(self):
+    def mp_percent(self) -> float:
         if self.max_mp == 0:
             return 100
         return round(self.mp / self.max_mp * 100, 2)

@@ -10,7 +10,7 @@ from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CL
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
     CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK,\
-    CMD_SET_CLASS_DESCRIPTION
+    CMD_SET_CLASS_DESCRIPTION, CMD_FEEDBACK_REPLY
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
 from .messages import *
 from .persist import Persist
@@ -214,6 +214,8 @@ class QueueListener:
                         self.get_character_status_handler(msg, db, player_list, method_frame.delivery_tag)
                     elif cmd == CMD_FEEDBACK:
                         self.feedback_message_handler(msg, db, feedback, method_frame.delivery_tag)
+                    elif cmd == CMD_FEEDBACK_REPLY:
+                        self.feedback_reply_handler(msg, db, feedback, method_frame.delivery_tag)
                     else:
                         self.logger.error("Message with command type {0} not supported".format(cmd))
                     # Acknowledge the message
@@ -271,6 +273,7 @@ class QueueListener:
         if len(result) == 0:
             new_character = Character(char_name, get_class(char_class), telegram_id)
             new_character.set_ai(get_ai())
+            new_character.set_last_user_activity()
             new_character.need_save = True
             self.logger.debug("try to save character")
             db.save_character(character=new_character)
@@ -334,11 +337,13 @@ class QueueListener:
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
                                                                                                QUEUE_NAME_RESPONSES))
 
-    def get_character_status_handler(self, cmd, db, player_list, delivery_tag):
+    def get_character_status_handler(self, cmd, db: Persist, player_list, delivery_tag):
         telegram_id = cmd.get("user_id")
         locale = cmd.get("locale")
         self.logger.info("try to find character with telegram id {0}".format(telegram_id))
+        result = None
         char_info = ''
+        code = None
         if telegram_id is None:
             result = 'telegram_id is empty'
             code = QUEUE_STATUS_TLG_ID_EMPTY
@@ -347,8 +352,9 @@ class QueueListener:
                 if player_list[i].telegram_id == telegram_id:
                     player_list[i].set_locale(cmd.get("locale"))
                     char_info = str(player_list[i])
-                    if player_list[i].need_save:
-                        db.commit()
+                    player_list[i].set_last_user_activity()
+                    db.save_character(player_list[i])
+                    db.commit()
                     code = QUEUE_STATUS_OK
                     result = "Success"
                     break
@@ -375,7 +381,7 @@ class QueueListener:
                 result = "Success"
                 code = QUEUE_STATUS_OK
             except ValueError as err:
-                result = str(err)
+                result = err
                 code = QUEUE_STATUS_ERROR
             except psycopg2.DatabaseError as err:
                 self.logger.critical(err)
@@ -386,6 +392,35 @@ class QueueListener:
         resp = {"code": code, "message": result, "user_id": telegram_id,
                 "cmd_type": CMD_FEEDBACK_RECEIVE}
         self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))
+        self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
+                                                                                               QUEUE_NAME_RESPONSES))
+
+    def feedback_reply_handler(self, cmd, db, feedback, delivery_tag):
+        message_id = cmd.get("message_id")
+        telegram_id = feedback.get_message_sender(message_id)
+        if telegram_id is None:
+            code = QUEUE_STATUS_TLG_ID_EMPTY
+            result = 'Telegram_id is empty'
+        else:
+            message = cmd.get("message")
+            try:
+                feedback.add_reply(msg_id=message_id, message=message, user_id=telegram_id)
+                code = QUEUE_STATUS_OK
+                resp = {"code": code, "message": message, "user_id": telegram_id,
+                        "cmd_type": CMD_FEEDBACK_REPLY}
+                self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_RESPONSES, body=json.dumps(resp))
+                result = "Success"
+                code = QUEUE_STATUS_OK
+            except ValueError as err:
+                result = err
+                code = QUEUE_STATUS_ERROR
+            except psycopg2.DatabaseError as err:
+                self.logger.critical(err)
+                locale = cmd.get("locale")
+                result = self.trans.get_message(M_TRY_LATER, locale)
+                code = QUEUE_STATUS_ERROR
+        resp = {"code": code, "message": result, "user_id": telegram_id,
+                "cmd_type": CMD_FEEDBACK_RECEIVE}
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
                                                                                                QUEUE_NAME_RESPONSES))
 

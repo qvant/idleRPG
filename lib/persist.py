@@ -1,13 +1,19 @@
 import psycopg2
 
+from .ai import CharAI
+from .char_classes import CharClass
 from .character import Character
 from .consts import ITEM_SLOT_WEAPON, ITEM_SLOT_ARMOR, LOG_PERSIST
 from .item import Item
 from .utility import get_logger
+from .config import Config
+
+PERSIST_VERSION = 1
+PERSIST_NAME = 'idle RPG'
 
 
 class Persist:
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.logger = get_logger(LOG_PERSIST, config.log_level, is_system=True)
         self.conn = psycopg2.connect(dbname=config.db_name, user=config.db_user,
                                      password=config.db_password, host=config.db_host, port=config.db_port)
@@ -16,7 +22,7 @@ class Persist:
         self.was_error = False
         self.logger.info('Persist ready')
 
-    def renew(self, config):
+    def renew(self, config: Config):
         self.conn.close()
         self.__init__(config)
 
@@ -41,13 +47,21 @@ class Persist:
             else:
                 raise
 
+    def check_version(self):
+        self.cursor.execute("""
+            select n_version from idle_rpg_base.persist_version where v_name = %s
+        """, (PERSIST_NAME, ))
+        ver = self.cursor.fetchone()[0]
+        self.logger.info("DB version {0}. Persist version {1}".format(ver, PERSIST_VERSION))
+        assert ver == PERSIST_VERSION
+
     def clear_all(self):
         self.cursor.execute("""truncate table idle_rpg_base.characters;""")
         self.cursor.execute("""truncate table idle_rpg_base.feedback_messages;""")
         self.commit()
         self.logger.warn("Persist cleared")
 
-    def load_all_characters(self, class_list, ai):
+    def load_all_characters(self, class_list: [CharClass], ai: CharAI) -> [Character]:
         class_by_name = {}
         players = []
         self.logger.info("Character loading started")
@@ -116,8 +130,9 @@ class Persist:
         self.logger.info("Character loading finished, {0} characters loaded".format(len(players)))
         return players
 
-    def delete_character(self, character):
+    def delete_character(self, character: Character):
         character.need_save = True
+        character.set_last_user_activity()
         self.save_character(character)
         self.cursor.execute("""
         insert into idle_rpg_base.arch_characters (select * from idle_rpg_base.characters t where t.id = %s)
@@ -126,7 +141,7 @@ class Persist:
         delete from idle_rpg_base.characters t where t.id = %s
         """, (character.id,))
 
-    def save_character(self, character):
+    def save_character(self, character: Character):
         if character.need_save or self.was_error:
             try:
                 character.need_save = False
@@ -149,12 +164,12 @@ class Persist:
                                                         gold,
                                                         health_potions, mana_potions, deaths,
                                                         weapon_name, weapon_level, armor_name, armor_level, 
-                                                        telegram_id)
+                                                        telegram_id, dt_last_activity)
                  VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 
                             %s, %s, %s, %s,
                             %s, %s, %s,
                             %s, %s, %s, 
-                            %s, %s, %s) 
+                            %s, %s, %s, %s) 
                  returning id;
                  """,
                                         (character.name, character.class_name, character.level, character.exp,
@@ -165,7 +180,7 @@ class Persist:
                                          character.gold,
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,
-                                         armor_level, character.telegram_id))
+                                         armor_level, character.telegram_id, character.last_user_activity))
                     character.id = self.cursor.fetchone()[0]
 
                 else:
@@ -176,7 +191,8 @@ class Persist:
                                 health_potions=%s, mana_potions=%s, deaths=%s, 
                                 weapon_name=%s, weapon_level=%s, armor_name=%s, 
                                 armor_level=%s, 
-                                dt_updated = current_timestamp
+                                dt_updated = current_timestamp,
+                                dt_last_activity = coalesce(%s, dt_last_activity)
                          where id = %s;
                          """,
                                         (character.name, character.class_name, character.level, character.exp,
@@ -188,7 +204,9 @@ class Persist:
                                          character.health_potions, character.mana_potions, character.deaths,
                                          weapon_name, weapon_level, armor_name,
                                          armor_level,
+                                         character.last_user_activity,
                                          character.id))
+                character.reset_last_user_activity()
                 if self.was_error:
                     self.was_error = False
                     self.logger.info('Persist restored after error')
@@ -211,7 +229,16 @@ class Persist:
             message_list.add_message(telegram_id=telegram_id, telegram_nickname=telegram_nickname, message=message,
                                      msg_id=msg_id, suppress_limit_check=True)
 
-    def save_message(self, message, user_id=None):
+    def save_message_reply(self, message_id: int, telegram_id: int, message: str):
+        self.cursor.execute(
+            """
+            insert into idle_rpg_base.feedback_replies
+                (feedback_message_id, telegram_id, message)
+                values(%s, %s, %s) 
+            """, (message_id, telegram_id, message)
+        )
+
+    def save_message(self, message, user_id: int = None):
         if message.id is None:
             self.cursor.execute(
                 """

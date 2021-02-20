@@ -11,7 +11,7 @@ LOG_DIR = "logs//"
 global log_level
 
 
-def check_chance(chance: int):
+def check_chance(chance: float):
     return random.random() <= chance
 
 

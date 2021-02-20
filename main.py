@@ -16,9 +16,9 @@ from lib.effect import EffectType
 from lib.feedback import MessageList
 from lib.item import Item
 from lib.l18n import Translator
-from lib.quest import Quest
 from lib.monster import MonsterType
 from lib.persist import Persist
+from lib.quest import Quest
 from lib.queue import QueueListener
 from lib.server import Server
 from lib.spell import Spell

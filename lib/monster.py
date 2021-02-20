@@ -1,5 +1,5 @@
-from .messages import *
 from .event import Event, EVENT_TYPE_FOUND_LOOT
+from .messages import *
 
 
 class MonsterType:

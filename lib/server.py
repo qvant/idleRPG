@@ -1,6 +1,8 @@
 import datetime
 import os
+
 import psutil
+
 from .character import Character
 from .feedback import MessageList
 from .l18n import Translator

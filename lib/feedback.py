@@ -1,5 +1,4 @@
 from typing import Union
-
 from .persist import Persist
 
 MAX_MESSAGES_FROM_USER = 3

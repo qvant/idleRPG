@@ -3,10 +3,10 @@ import psycopg2
 from .ai import CharAI
 from .char_classes import CharClass
 from .character import Character
-from .config import Config
 from .consts import ITEM_SLOT_WEAPON, ITEM_SLOT_ARMOR, LOG_PERSIST
 from .item import Item
 from .utility import get_logger
+from .config import Config
 
 PERSIST_VERSION = 1
 PERSIST_NAME = 'idle RPG'
@@ -68,7 +68,7 @@ class Persist:
         for i in class_list:
             class_by_name.update({i.class_name: i})
         self.cursor.execute("""
-            select  id,
+            select  id, 
                     name,
                     class_name,
                     level,
@@ -160,16 +160,16 @@ class Persist:
                 if character.id is None:
                     self.cursor.execute("""
                 INSERT INTO idle_rpg_base.characters (name, class_name, level, exp, hp, max_hp, mp, max_mp,
-                                                        base_attack, base_defence, monsters_killed, quests_completed,
+                                                        base_attack, base_defence, monsters_killed, quests_completed, 
                                                         gold,
                                                         health_potions, mana_potions, deaths,
-                                                        weapon_name, weapon_level, armor_name, armor_level,
+                                                        weapon_name, weapon_level, armor_name, armor_level, 
                                                         telegram_id, dt_last_activity)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s,
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 
                             %s, %s, %s, %s,
                             %s, %s, %s,
-                            %s, %s, %s,
-                            %s, %s, %s, %s)
+                            %s, %s, %s, 
+                            %s, %s, %s, %s) 
                  returning id;
                  """,
                                         (character.name, character.class_name, character.level, character.exp,
@@ -185,12 +185,12 @@ class Persist:
 
                 else:
                     self.cursor.execute("""
-                        update idle_rpg_base.characters
+                        update idle_rpg_base.characters 
                             set name=%s, class_name=%s, level=%s, exp=%s, hp=%s, max_hp=%s, mp=%s, max_mp=%s,
                                 base_attack=%s, base_defence=%s, monsters_killed=%s, quests_completed=%s, gold=%s,
-                                health_potions=%s, mana_potions=%s, deaths=%s,
-                                weapon_name=%s, weapon_level=%s, armor_name=%s,
-                                armor_level=%s,
+                                health_potions=%s, mana_potions=%s, deaths=%s, 
+                                weapon_name=%s, weapon_level=%s, armor_name=%s, 
+                                armor_level=%s, 
                                 dt_updated = current_timestamp,
                                 dt_last_activity = coalesce(%s, dt_last_activity)
                          where id = %s;
@@ -234,7 +234,7 @@ class Persist:
             """
             insert into idle_rpg_base.feedback_replies
                 (feedback_message_id, telegram_id, message)
-                values(%s, %s, %s)
+                values(%s, %s, %s) 
             """, (message_id, telegram_id, message)
         )
 
@@ -251,10 +251,10 @@ class Persist:
         else:
             self.cursor.execute(
                 """
-                update idle_rpg_base.feedback_messages
-                    set is_read = True,
+                update idle_rpg_base.feedback_messages 
+                    set is_read = True, 
                         dt_read=current_timestamp,
-                        read_by = %s
+                        read_by = %s 
                     where id = %s
                 """, (user_id, message.id,)
             )

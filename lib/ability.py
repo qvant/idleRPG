@@ -1,10 +1,10 @@
-from .character import Character
 from .consts import ABILITY_BACKSTAB, ABILITY_SHIELD_SLAM, ABILITY_ASSAULT, ABILITY_SECOND_STRIKE, ABILITY_BLEED, \
     ABILITY_TRIGGER_COMBAT_ATTACK, ABILITY_TRIGGERS, ABILITIES
-from .effect import EffectType
-from .event import Event, EVENT_TYPE_USED_ABILITY
-from .l18n import Translator
 from .messages import *
+from .character import Character
+from .event import Event, EVENT_TYPE_USED_ABILITY
+from .effect import EffectType
+from .l18n import Translator
 from .utility import check_chance
 
 

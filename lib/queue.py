@@ -12,7 +12,8 @@ from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CL
     CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK, \
     CMD_SET_CLASS_DESCRIPTION, CMD_FEEDBACK_REPLY
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
-from .messages import *
+from .messages import M_TRY_LATER, M_USER_HAS_NO_CHARACTER, M_CHARACTER_WAS_DELETED, M_CHARACTER_WAS_CREATED, \
+    M_NAME_IS_ALREADY_TAKEN, M_USER_ALREADY_HAS_CHARACTER, M_FEEDBACK_CONFIRMED, M_NO_FEEDBACK, M_SERVER_SHUTTING_DOWN
 from .persist import Persist
 from .utility import get_logger
 
@@ -87,9 +88,8 @@ class QueueListener:
             for method_frame, properties, body in self.channel.consume(QUEUE_NAME_INIT, inactivity_timeout=0.01):
                 # if not timeout
                 if method_frame is not None:
-                    self.logger.info("Received message {0}, delivery tag {1} in queue".format(body,
-                                                                                              method_frame.delivery_tag,
-                                                                                              QUEUE_NAME_INIT))
+                    self.logger.info("Received message {0}, delivery tag {1} in queue {2}".
+                                     format(body, method_frame.delivery_tag, QUEUE_NAME_INIT))
                     msg = json.loads(body)
                     cmd = msg.get("cmd_type")
                     if cmd == CMD_GET_CLASS_LIST:
@@ -106,7 +106,7 @@ class QueueListener:
                                             }
                                 response = json.dumps(response)
                                 self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
-                        self.logger.info("For class list request with delivery tag {0} sent response".format(
+                        self.logger.info("For class list request with delivery tag {0} sent response {1}".format(
                             method_frame.delivery_tag, response))
                     elif cmd == CMD_GET_SERVER_STATS:
                         locale = msg.get("locale")
@@ -201,9 +201,8 @@ class QueueListener:
 
                 # if not timeout
                 if method_frame is not None:
-                    self.logger.info("Received message {0}, delivery tag {1} in queue".format(body,
-                                                                                              method_frame.delivery_tag,
-                                                                                              QUEUE_NAME_CMD))
+                    self.logger.info("Received message {0}, delivery tag {1} in queue {2}".
+                                     format(body, method_frame.delivery_tag, QUEUE_NAME_CMD))
                     msg = json.loads(body)
                     cmd = msg.get("cmd_type")
                     if cmd == CMD_CREATE_CHARACTER:
@@ -258,7 +257,7 @@ class QueueListener:
             result = 'Class is empty'
             code = QUEUE_STATUS_CLASS_EMPTY
         elif char_class not in class_list:
-            result = 'Class {0) is unknown'.format(char_class)
+            result = 'Class {0} is unknown'.format(char_class)
             code = QUEUE_STATUS_CLASS_UNKNOWN
         else:
             for i in player_list:

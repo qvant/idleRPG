@@ -10,7 +10,9 @@ from lib.ai import CharAI
 from lib.char_classes import CharClass
 from lib.character import Character
 from lib.config import Config
-from lib.consts import *
+from lib.consts import START_CLEAR, START_RESUME, LOG_MAIN_APP, LOG_GAME, MONSTER_AMPLIFY_CHANCE, \
+    MONSTER_AMPLIFY_MIN_LEVEL, MONSTER_CHANCE_ON_QUEST, ACTION_QUEST, ACTION_SHOP, MONSTER_CHANCE_ON_RETREAT, \
+    ACTION_RETREAT, ACTION_NONE
 from lib.dictionary import set_class_list, set_ai_list
 from lib.effect import EffectType
 from lib.feedback import MessageList
@@ -308,8 +310,8 @@ def main():
             turn_end_time = datetime.datetime.now()
             if config.turn_time > 0 and turn_end_time > turn_end_time_r:
                 app_log.warning("Turn {4} takes too long: started at: {0}, ended at: {1}, should ended: {2} "
-                                "should take:{3}".format(turn_start_time, turn_end_time, turn_end_time_r, config.turn_time,
-                                                         server.turn))
+                                "should take:{3}".format(turn_start_time, turn_end_time, turn_end_time_r,
+                                                         config.turn_time, server.turn))
             else:
                 app_log.info("Turn {4} ended: started at: {0}, ended at: {1}, should ended: {2} should take:{3}".format(
                     turn_start_time, turn_end_time, turn_end_time_r, config.turn_time, server.turn))

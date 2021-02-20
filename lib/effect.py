@@ -1,4 +1,4 @@
-from .messages import *
+from .messages import M_ATTACK, M_DEFENCE, M_DAMAGE_PER_TURN, M_HEAL_PER_TURN, M_DIE_AT, M_DURATION, M_LEVEL_SCALED
 
 
 class Effect:

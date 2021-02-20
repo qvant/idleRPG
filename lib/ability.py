@@ -4,7 +4,7 @@ from .consts import ABILITY_BACKSTAB, ABILITY_SHIELD_SLAM, ABILITY_ASSAULT, ABIL
 from .effect import EffectType
 from .event import Event, EVENT_TYPE_USED_ABILITY
 from .l18n import Translator
-from .messages import *
+from .messages import M_ABILITY_TRIGGER, M_ABILITY_CHANCE, M_EFFECT
 from .utility import check_chance
 
 

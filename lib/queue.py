@@ -6,12 +6,14 @@ import pika
 import psycopg2
 
 from .character import Character
+from .config import Config
 from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CLASS_LIST, CMD_CREATE_CHARACTER, \
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
     CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK, \
     CMD_SET_CLASS_DESCRIPTION, CMD_FEEDBACK_REPLY
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
+from .l18n import Translator
 from .messages import M_TRY_LATER, M_USER_HAS_NO_CHARACTER, M_CHARACTER_WAS_DELETED, M_CHARACTER_WAS_CREATED, \
     M_NAME_IS_ALREADY_TAKEN, M_USER_ALREADY_HAS_CHARACTER, M_FEEDBACK_CONFIRMED, M_NO_FEEDBACK, M_SERVER_SHUTTING_DOWN
 from .persist import Persist
@@ -30,7 +32,7 @@ QUEUE_STATUS_CHARACTER_NOT_EXISTS = 507
 
 
 class QueueListener:
-    def __init__(self, config, reload=False):
+    def __init__(self, config: Config, reload: bool = False):
         self.enabled = config.queue_enabled
         if reload:
             self.logger.setLevel(config.log_level)
@@ -67,10 +69,10 @@ class QueueListener:
             self.logger.critical(exc)
             self.enabled = False
 
-    def renew(self, config):
+    def renew(self, config: Config):
         self.__init__(config, reload=True)
 
-    def set_translator(self, trans):
+    def set_translator(self, trans: Translator):
         self.trans = trans
 
     def listen(self, server, player_list, db, feedback):

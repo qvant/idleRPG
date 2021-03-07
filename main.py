@@ -275,6 +275,7 @@ def main():
         server.set_hist_len(config.char_history_len)
         server.set_feedback(feedback)
         bot_queue.set_translator(trans)
+        bot_queue.send_startup(server=server)
         while True:
             turn_start_time = datetime.datetime.now()
             turn_end_time_r = turn_start_time + datetime.timedelta(seconds=config.turn_time)

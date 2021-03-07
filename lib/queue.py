@@ -11,7 +11,7 @@ from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CL
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
     CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK, \
-    CMD_SET_CLASS_DESCRIPTION, CMD_FEEDBACK_REPLY
+    CMD_SET_CLASS_DESCRIPTION, CMD_FEEDBACK_REPLY, CMD_SERVER_STARTUP
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
 from .l18n import Translator
 from .messages import M_TRY_LATER, M_USER_HAS_NO_CHARACTER, M_CHARACTER_WAS_DELETED, M_CHARACTER_WAS_CREATED, \
@@ -189,6 +189,16 @@ class QueueListener:
         except pika.exceptions.AMQPError as exc:
             self.logger.critical(exc)
             self.enabled = False
+
+    def send_startup(self, server):
+        if not self.enabled:
+            return
+        body = {"cmd_type": CMD_SERVER_STARTUP,
+                "datetime": str(datetime.datetime.now()),
+                "message": str(server)}
+        body = json.dumps(body)
+        self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=body)
+        self.logger.info("Sent server startup message")
 
     def listen_cmd(self, server, player_list, db, feedback):
         if not self.enabled:

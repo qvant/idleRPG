@@ -404,7 +404,7 @@ class Character:
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_LOCATION, self.locale).\
             format(self.trans.get_message(ACTION_NAMES[self.action], self.locale), self.town_distance,
-                   self.quest, self.quest_progress,)
+                   self.quest, self.quest_progress, self.name)
         res += chr(10)
         res += chr(10)
         if self.weapon is not None:
@@ -464,8 +464,8 @@ class Character:
             res += self.trans.get_message(M_CHARACTER_LAST_EVENTS, self.locale)
             res += chr(10)
         for i in self.history:
-            res += str(i)
-            res += chr(10)
+            res += '  ' + str(i)
+            res += '.' + chr(10)
         if self.enemy is not None and not self.dead:
             res += chr(10) + self.trans.get_message(M_CHARACTER_ENEMY,
                                                     self.locale).format(self.enemy.translate(is_ablative=True))

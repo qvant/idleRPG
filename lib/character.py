@@ -5,11 +5,20 @@ import typing
 from .ai import CharAI
 from .char_classes import CharClass
 from .config import Config
-from .consts import *
-from .event import *
+from .consts import LOG_CHARACTER, ACTIONS, ABILITY_TRIGGER_COMBAT_START, ACTION_NONE, ACTION_DEAD, RESURRECT_TIMER, \
+    EXP_FOR_RETREAT_RATIO, ABILITY_TRIGGER_COMBAT_RECEIVE_DMG, ABILITY_TRIGGER_COMBAT_ATTACK, HEALTH_POTION_PRICE, \
+    MANA_POTION_PRICE, ITEM_SLOT_WEAPON, ACTION_RETREAT, ITEM_SLOT_ARMOR, ACTION_NAMES
+from .event import Event, EVENT_TYPE_RESURRECTED, EVENT_TYPE_KILLED, EVENT_TYPE_DIED, EVENT_TYPE_DRINK_HEALTH_POTION, \
+    EVENT_TYPE_DRINK_MANA_POTION, EVENT_TYPE_RUN_AWAY, EVENT_TYPE_RUN_AWAY_FAILED, EVENT_TYPE_CASTED_SPELL, \
+    EVENT_TYPE_CASTED_SPELL_ON_HIMSELF, EVENT_TYPE_ACCEPTED_QUEST, EVENT_TYPE_COMPLETED_QUEST, \
+    EVENT_TYPE_REACHED_LEVEL, EVENT_TYPE_BOUGHT_HEALTH_POTIONS, EVENT_TYPE_BOUGHT_MANA_POTIONS, \
+    EVENT_TYPE_BOUGHT_EQUIPMENT, EVENT_TYPE_RESTED
 from .item import Item
 from .l18n import Translator
-from .messages import *
+from .messages import M_CHARACTER_HEADER, M_CHARACTER_LOCATION, M_CHARACTER_WEAPON, M_CHARACTER_ARMOR, \
+    M_CHARACTER_HAVE_NO_SPELLS, M_CHARACTER_ABILITIES_LIST, M_CHARACTER_HAVE_NO_ABILITIES, \
+    M_CHARACTER_GOLD_AND_POTIONS, M_CHARACTER_EFFECT_LIST, M_CHARACTER_HAVE_NO_EFFECTS, M_CHARACTER_LAST_EVENTS, \
+    M_CHARACTER_ENEMY, M_CHARACTER_RESURRECT_TIMER, M_GP, M_POTION, M_CHARACTER_SPELL_LIST
 from .monster import Monster
 from .quest import Quest
 from .utility import check_chance, get_logger
@@ -125,7 +134,7 @@ class Character:
 
     def set_action(self, action: int):
         if action not in ACTIONS:
-            raise ValueError("Action {) is not exists".format(action))
+            raise ValueError("Action {} is not exists".format(action))
         self.action = action
 
     def set_ai(self, ai: CharAI):
@@ -395,7 +404,7 @@ class Character:
         res += chr(10)
         res += self.trans.get_message(M_CHARACTER_LOCATION, self.locale).\
             format(self.trans.get_message(ACTION_NAMES[self.action], self.locale), self.town_distance,
-                   self.quest, self.quest_progress,)
+                   self.quest, self.quest_progress, self.name)
         res += chr(10)
         res += chr(10)
         if self.weapon is not None:
@@ -455,8 +464,8 @@ class Character:
             res += self.trans.get_message(M_CHARACTER_LAST_EVENTS, self.locale)
             res += chr(10)
         for i in self.history:
-            res += str(i)
-            res += chr(10)
+            res += '  ' + str(i)
+            res += '.' + chr(10)
         if self.enemy is not None and not self.dead:
             res += chr(10) + self.trans.get_message(M_CHARACTER_ENEMY,
                                                     self.locale).format(self.enemy.translate(is_ablative=True))

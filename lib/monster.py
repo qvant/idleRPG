@@ -1,5 +1,5 @@
-from .messages import *
 from .event import Event, EVENT_TYPE_FOUND_LOOT
+from .messages import M_ATTACK, M_DEFENCE, M_HP, M_CHARACTER_EFFECT_LIST
 
 
 class MonsterType:

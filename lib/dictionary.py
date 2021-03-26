@@ -1,8 +1,9 @@
 from typing import Union
 
 from .ai import CharAI
-from .l18n import L18n
 from .char_classes import CharClass
+from .l18n import L18n
+
 global class_list
 global class_list_text
 global ai_list

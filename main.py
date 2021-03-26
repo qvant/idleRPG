@@ -10,15 +10,17 @@ from lib.ai import CharAI
 from lib.char_classes import CharClass
 from lib.character import Character
 from lib.config import Config
-from lib.consts import *
+from lib.consts import START_CLEAR, START_RESUME, LOG_MAIN_APP, LOG_GAME, MONSTER_AMPLIFY_CHANCE, \
+    MONSTER_AMPLIFY_MIN_LEVEL, MONSTER_CHANCE_ON_QUEST, ACTION_QUEST, ACTION_SHOP, MONSTER_CHANCE_ON_RETREAT, \
+    ACTION_RETREAT, ACTION_NONE
 from lib.dictionary import set_class_list, set_ai_list
 from lib.effect import EffectType
 from lib.feedback import MessageList
 from lib.item import Item
 from lib.l18n import Translator
-from lib.quest import Quest
 from lib.monster import MonsterType
 from lib.persist import Persist
+from lib.quest import Quest
 from lib.queue import QueueListener
 from lib.server import Server
 from lib.spell import Spell
@@ -273,6 +275,7 @@ def main():
         server.set_hist_len(config.char_history_len)
         server.set_feedback(feedback)
         bot_queue.set_translator(trans)
+        bot_queue.send_startup(server=server)
         while True:
             turn_start_time = datetime.datetime.now()
             turn_end_time_r = turn_start_time + datetime.timedelta(seconds=config.turn_time)
@@ -308,8 +311,8 @@ def main():
             turn_end_time = datetime.datetime.now()
             if config.turn_time > 0 and turn_end_time > turn_end_time_r:
                 app_log.warning("Turn {4} takes too long: started at: {0}, ended at: {1}, should ended: {2} "
-                                "should take:{3}".format(turn_start_time, turn_end_time, turn_end_time_r, config.turn_time,
-                                                         server.turn))
+                                "should take:{3}".format(turn_start_time, turn_end_time, turn_end_time_r,
+                                                         config.turn_time, server.turn))
             else:
                 app_log.info("Turn {4} ended: started at: {0}, ended at: {1}, should ended: {2} should take:{3}".format(
                     turn_start_time, turn_end_time, turn_end_time_r, config.turn_time, server.turn))

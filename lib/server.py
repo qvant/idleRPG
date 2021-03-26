@@ -1,10 +1,14 @@
 import datetime
 import os
+
 import psutil
+
 from .character import Character
 from .feedback import MessageList
 from .l18n import Translator
-from .messages import *
+from .messages import M_DAYS, M_SERVER_UPTIME, M_SERVER_CHARACTERS, M_SERVER_TURNS_PASSED, M_SERVER_FEEDBACK_MESSAGES, \
+    M_SERVER_CMD_PROCEED, M_SERVER_MEMORY_TOTAL, M_SERVER_MEMORY_LAST_TURN, M_SERVER_MEMORY_STAB, \
+    M_SERVER_MEMORY_FIRST_TURN, M_SERVER_CPU_TIMES, M_SERVER_CPU_PERCENT, M_SERVER_SHUTTING_DOWN, M_SERVER_RUNNING
 
 
 class Server:
@@ -96,11 +100,13 @@ class Server:
         res = self._trans.get_message(M_SERVER_UPTIME, code).format(self.startup, uptime) + chr(10)
         res += self._trans.get_message(M_SERVER_CHARACTERS, code).format(len(self.players)) + chr(10)
         res += self._trans.get_message(M_SERVER_TURNS_PASSED, code).format(self.turn) + chr(10)
-        res += self._trans.get_message(M_SERVER_FEEDBACK_MESSAGES, code).format(self.feedback.get_message_number()) + chr(10)
+        res += self._trans.get_message(M_SERVER_FEEDBACK_MESSAGES, code).format(self.feedback.get_message_number())
+        res += chr(10)
         res += self._trans.get_message(M_SERVER_CMD_PROCEED, code).\
             format(self.sys_commands_proceed, self.user_commands_proceed, self.admin_commands_proceed) + chr(10)
         res += chr(10)
-        res += self._trans.get_message(M_SERVER_MEMORY_TOTAL, code).format(self.get_memory_usage(), self.get_memory_percent())
+        res += self._trans.get_message(M_SERVER_MEMORY_TOTAL, code).format(self.get_memory_usage(),
+                                                                           self.get_memory_percent())
         res += chr(10)
         if self.memory_after_turn_last is not None:
             res += self._trans.get_message(M_SERVER_MEMORY_LAST_TURN, code).format(self.memory_after_turn_last)

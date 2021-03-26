@@ -1,18 +1,21 @@
 import datetime
 import json
-import psycopg2
-
-import pika
 import sys
 
+import pika
+import psycopg2
+
 from .character import Character
+from .config import Config
 from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CLASS_LIST, CMD_CREATE_CHARACTER, \
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
     CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
-    CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK,\
-    CMD_SET_CLASS_DESCRIPTION, CMD_FEEDBACK_REPLY
+    CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK, \
+    CMD_SET_CLASS_DESCRIPTION, CMD_FEEDBACK_REPLY, CMD_SERVER_STARTUP
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
-from .messages import *
+from .l18n import Translator
+from .messages import M_TRY_LATER, M_USER_HAS_NO_CHARACTER, M_CHARACTER_WAS_DELETED, M_CHARACTER_WAS_CREATED, \
+    M_NAME_IS_ALREADY_TAKEN, M_USER_ALREADY_HAS_CHARACTER, M_FEEDBACK_CONFIRMED, M_NO_FEEDBACK, M_SERVER_SHUTTING_DOWN
 from .persist import Persist
 from .utility import get_logger
 
@@ -29,7 +32,7 @@ QUEUE_STATUS_CHARACTER_NOT_EXISTS = 507
 
 
 class QueueListener:
-    def __init__(self, config, reload=False):
+    def __init__(self, config: Config, reload: bool = False):
         self.enabled = config.queue_enabled
         if reload:
             self.logger.setLevel(config.log_level)
@@ -66,10 +69,10 @@ class QueueListener:
             self.logger.critical(exc)
             self.enabled = False
 
-    def renew(self, config):
+    def renew(self, config: Config):
         self.__init__(config, reload=True)
 
-    def set_translator(self, trans):
+    def set_translator(self, trans: Translator):
         self.trans = trans
 
     def listen(self, server, player_list, db, feedback):
@@ -87,9 +90,8 @@ class QueueListener:
             for method_frame, properties, body in self.channel.consume(QUEUE_NAME_INIT, inactivity_timeout=0.01):
                 # if not timeout
                 if method_frame is not None:
-                    self.logger.info("Received message {0}, delivery tag {1} in queue".format(body,
-                                                                                              method_frame.delivery_tag,
-                                                                                              QUEUE_NAME_INIT))
+                    self.logger.info("Received message {0}, delivery tag {1} in queue {2}".
+                                     format(body, method_frame.delivery_tag, QUEUE_NAME_INIT))
                     msg = json.loads(body)
                     cmd = msg.get("cmd_type")
                     if cmd == CMD_GET_CLASS_LIST:
@@ -106,7 +108,7 @@ class QueueListener:
                                             }
                                 response = json.dumps(response)
                                 self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=response)
-                        self.logger.info("For class list request with delivery tag {0} sent response".format(
+                        self.logger.info("For class list request with delivery tag {0} sent response {1}".format(
                             method_frame.delivery_tag, response))
                     elif cmd == CMD_GET_SERVER_STATS:
                         locale = msg.get("locale")
@@ -188,6 +190,16 @@ class QueueListener:
             self.logger.critical(exc)
             self.enabled = False
 
+    def send_startup(self, server):
+        if not self.enabled:
+            return
+        body = {"cmd_type": CMD_SERVER_STARTUP,
+                "datetime": str(datetime.datetime.now()),
+                "message": str(server)}
+        body = json.dumps(body)
+        self.channel.basic_publish(exchange='', routing_key=QUEUE_NAME_DICT, body=body)
+        self.logger.info("Sent server startup message")
+
     def listen_cmd(self, server, player_list, db, feedback):
         if not self.enabled:
             return
@@ -201,9 +213,8 @@ class QueueListener:
 
                 # if not timeout
                 if method_frame is not None:
-                    self.logger.info("Received message {0}, delivery tag {1} in queue".format(body,
-                                                                                              method_frame.delivery_tag,
-                                                                                              QUEUE_NAME_CMD))
+                    self.logger.info("Received message {0}, delivery tag {1} in queue {2}".
+                                     format(body, method_frame.delivery_tag, QUEUE_NAME_CMD))
                     msg = json.loads(body)
                     cmd = msg.get("cmd_type")
                     if cmd == CMD_CREATE_CHARACTER:
@@ -258,7 +269,7 @@ class QueueListener:
             result = 'Class is empty'
             code = QUEUE_STATUS_CLASS_EMPTY
         elif char_class not in class_list:
-            result = 'Class {0) is unknown'.format(char_class)
+            result = 'Class {0} is unknown'.format(char_class)
             code = QUEUE_STATUS_CLASS_UNKNOWN
         else:
             for i in player_list:
@@ -423,4 +434,3 @@ class QueueListener:
                 "cmd_type": CMD_FEEDBACK_RECEIVE}
         self.logger.info("For cmd with delivery tat {0} sent response {1} in queue {2}".format(delivery_tag, resp,
                                                                                                QUEUE_NAME_RESPONSES))
-

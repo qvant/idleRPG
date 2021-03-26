@@ -1,3 +1,7 @@
+release 8:  
+* sent message for admin on server startup
+* major changes for linter
+
 release 7:  
 * improved stability
 * improved russian translation in admin interface

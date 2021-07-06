@@ -23,7 +23,7 @@
 	armor_level integer,
 	dt_created timestamp with time zone default CURRENT_TIMESTAMP,
 	dt_updated timestamp with time zone,
-	telegram_id integer,
+	telegram_id bigint,
 	dt_last_activity timestamp with time zone
 );
 alter table  idle_rpg_base.characters owner to idle_rpg_user;

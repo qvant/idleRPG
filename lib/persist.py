@@ -8,7 +8,7 @@ from .consts import ITEM_SLOT_WEAPON, ITEM_SLOT_ARMOR, LOG_PERSIST
 from .item import Item
 from .utility import get_logger
 
-PERSIST_VERSION = 2
+PERSIST_VERSION = 3
 PERSIST_NAME = 'idle RPG'
 
 

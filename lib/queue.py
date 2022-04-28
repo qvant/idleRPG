@@ -415,7 +415,7 @@ class QueueListener:
                 result = "Success"
                 code = QUEUE_STATUS_OK
             except ValueError as err:
-                result = err
+                result = str(err)
                 code = QUEUE_STATUS_ERROR
             except psycopg2.DatabaseError as err:
                 self.logger.critical(err)

@@ -295,7 +295,11 @@ def main():
                 player_cnt += 1
                 if player_cnt >= config.char_batch_size > 0:
                     player_cnt = 0
-                    bot_queue.listen(server, player_list, db, feedback)
+                    try:
+                        bot_queue.listen(server, player_list, db, feedback)
+                    except BaseException as err:
+                        # continue on any fail with queue
+                        app_log.critical(err, exc_info=1)
             server.inc_turns()
             db.commit()
             config.renew_if_needed()

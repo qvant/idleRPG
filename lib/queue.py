@@ -9,7 +9,8 @@ from .character import Character
 from .config import Config
 from .consts import QUEUE_NAME_INIT, QUEUE_NAME_DICT, QUEUE_NAME_CMD, CMD_GET_CLASS_LIST, CMD_CREATE_CHARACTER, \
     CMD_DELETE_CHARACTER, QUEUE_NAME_RESPONSES, CMD_GET_CHARACTER_STATUS, CMD_GET_SERVER_STATS, \
-    CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, CMD_SET_CLASS_LIST, CMD_SERVER_STATS, \
+    CMD_SERVER_SHUTDOWN_IMMEDIATE, CMD_SERVER_SHUTDOWN_NORMAL, LOG_QUEUE, LOG_BAD_COMMANDS, CMD_SET_CLASS_LIST, \
+    CMD_SERVER_STATS, \
     CMD_SERVER_OK, CMD_FEEDBACK_RECEIVE, CMD_FEEDBACK, CMD_GET_FEEDBACK, CMD_SENT_FEEDBACK, CMD_CONFIRM_FEEDBACK, \
     CMD_SET_CLASS_DESCRIPTION, CMD_FEEDBACK_REPLY, CMD_SERVER_STARTUP
 from .dictionary import get_class_list, get_class_names, get_class, get_ai
@@ -36,8 +37,10 @@ class QueueListener:
         self.enabled = config.queue_enabled
         if reload:
             self.logger.setLevel(config.log_level)
+            self.bad_cmd_logger.setLevel(config.log_level)
         else:
             self.logger = get_logger(LOG_QUEUE, config.log_level, is_system=True)
+            self.bad_cmd_logger = get_logger(LOG_BAD_COMMANDS, config.log_level, is_system=True, file_size=10*1024)
             self.trans = None
         if not self.enabled:
             return
@@ -92,7 +95,14 @@ class QueueListener:
                 if method_frame is not None:
                     self.logger.info("Received message {0}, delivery tag {1} in queue {2}".
                                      format(body, method_frame.delivery_tag, QUEUE_NAME_INIT))
-                    msg = json.loads(body)
+                    try:
+                        msg = json.loads(body)
+                    except BaseException as err:
+                        self.logger.error("Wrong message!")
+                        self.bad_cmd_logger.critical(err)
+                        self.bad_cmd_logger.critical("On message {0}".format(body))
+                        self.bad_cmd_logger.critical("Continue work")
+                        continue
                     cmd = msg.get("cmd_type")
                     if cmd == CMD_GET_CLASS_LIST:
                         response = {"class_list": class_list, "cmd_type": CMD_SET_CLASS_LIST}
@@ -209,20 +219,33 @@ class QueueListener:
             msg_cnt = 0
             user_msg_proceed = 0
             admin_msg_proceed = 0
+            statuses_sent = {}
             for method_frame, properties, body in self.channel.consume(QUEUE_NAME_CMD, inactivity_timeout=0.01):
 
                 # if not timeout
                 if method_frame is not None:
                     self.logger.info("Received message {0}, delivery tag {1} in queue {2}".
                                      format(body, method_frame.delivery_tag, QUEUE_NAME_CMD))
-                    msg = json.loads(body)
+                    try:
+                        msg = json.loads(body)
+                    except BaseException as err:
+                        self.logger.error("Wrong message!")
+                        self.bad_cmd_logger.critical(err)
+                        self.bad_cmd_logger.critical("On message {0}".format(body))
+                        self.bad_cmd_logger.critical("Continue work")
+                        continue
                     cmd = msg.get("cmd_type")
                     if cmd == CMD_CREATE_CHARACTER:
                         self.create_character_handler(msg, db, class_list, player_list, method_frame.delivery_tag)
                     elif cmd == CMD_DELETE_CHARACTER:
                         self.delete_character_handler(msg, db, player_list, method_frame.delivery_tag)
                     elif cmd == CMD_GET_CHARACTER_STATUS:
-                        self.get_character_status_handler(msg, db, player_list, method_frame.delivery_tag)
+                        user_id = msg.get("user_id")
+                        if user_id not in statuses_sent:
+                            self.get_character_status_handler(msg, db, player_list, method_frame.delivery_tag)
+                            statuses_sent[user_id] = 1
+                        else:
+                            self.logger.info("Already processed status request from user {}".format(user_id))
                     elif cmd == CMD_FEEDBACK:
                         self.feedback_message_handler(msg, db, feedback, method_frame.delivery_tag)
                     elif cmd == CMD_FEEDBACK_REPLY:

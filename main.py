@@ -330,9 +330,13 @@ def main():
                         time.sleep((turn_end_time_r - turn_end_time).seconds)
             if server.turn >= config.max_turns > 0 or server.is_shutdown:
                 break
-            bot_queue.listen(server, player_list, db, feedback)
+            try:
+                bot_queue.listen(server, player_list, db, feedback)
+            except BaseException as err:
+                # continue on any fail with queue
+                app_log.critical(err, exc_info=1)
     except BaseException as err:
-        app_log.critical(err)
+        app_log.critical(err, exc_info=1)
         raise
 
 

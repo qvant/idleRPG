@@ -87,6 +87,7 @@ LOG_GAME = "Game"
 LOG_MAIN_APP = "Core"
 LOG_PERSIST = "Storage"
 LOG_QUEUE = "Message_queue"
+LOG_BAD_COMMANDS = "Bad_commands"
 
 START_CLEAR = 1
 START_RESUME = 2

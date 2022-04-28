@@ -29,18 +29,19 @@ def get_console_handler(is_system: bool = False) -> StreamHandler:
     return console_handler
 
 
-def get_file_handler(logger_name: str) -> RotatingFileHandler:
-    file_handler = RotatingFileHandler(LOG_DIR + logger_name + ".log", maxBytes=1024 * 1024, backupCount=10,
+def get_file_handler(logger_name: str, file_size: int = 1024 * 1024) -> RotatingFileHandler:
+    file_handler = RotatingFileHandler(LOG_DIR + logger_name + ".log", maxBytes=file_size, backupCount=10,
                                        encoding="utf-8")
     file_handler.setFormatter(FORMATTER)
     return file_handler
 
 
-def get_logger(logger_name: str, level: Union[int, str] = INFO, is_system: bool = False) -> Logger:
+def get_logger(logger_name: str, level: Union[int, str] = INFO, is_system: bool = False,
+               file_size: int = 1024 * 1024) -> Logger:
     logger = logging.getLogger(logger_name)
     logger.setLevel(level)
     logger.addHandler(get_console_handler(is_system))
-    logger.addHandler(get_file_handler(logger_name))
+    logger.addHandler(get_file_handler(logger_name, file_size))
     # with this pattern, it's rarely necessary to propagate the error up to parent
     logger.propagate = False
     return logger
